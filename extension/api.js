@@ -8,6 +8,7 @@ async function sendRescueRequest(snapshot, goal) {
     focusedElement: snapshot.focusedElement,
     nearbyTree: snapshot.nearbyTree,
     safeValues: snapshot.safeValues,
+    situation: snapshot.situation,
     settings: { language: "en-IN", speechRate: 1 },
     capturedAt: snapshot.capturedAt,
   };

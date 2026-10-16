@@ -11,7 +11,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["sensitive.js", "a11yTree.js", "capture.js", "goal.js", "content.js"],
+      "js": ["sensitive.js", "a11yTree.js", "capture.js", "describe.js", "goal.js", "content.js"],
       "run_at": "document_idle"
     }
   ],

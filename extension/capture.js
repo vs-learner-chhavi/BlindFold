@@ -37,12 +37,14 @@ function getSafeValues() {
 }
 
 function buildSnapshot() {
+  const nearbyTree = buildNearbyTree();
   return {
     pageUrl: location.href,
     pageTitle: document.title,
     focusedElement: describeElement(document.activeElement),
-    nearbyTree: buildNearbyTree(),
+    nearbyTree,
     safeValues: getSafeValues(),
+    situation: describeSituation(nearbyTree),
     capturedAt: new Date().toISOString(),
   };
 }

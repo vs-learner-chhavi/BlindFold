@@ -66,7 +66,7 @@ function openGoalDialog(snapshot) {
     const v = input.value.trim();
     if (!v) { speak("Please say or type your goal."); return; }
     if (step === "confirm" && v === goal) {
-      chrome.runtime.sendMessage({ type: "GOAL_READY", snapshot, goal });
+      chrome.runtime.sendMessage({ type: "GOAL_READY", snapshot, goal: normalizeGoal(goal, snapshot)});
       close("Sending your request.");
     } else {
       goal = v;
@@ -121,6 +121,8 @@ function openGoalDialog(snapshot) {
   box.querySelector("#bf-speak").addEventListener("click", () => { step = "goal"; input.value = ""; startListening(); });
   box.querySelector("#bf-cancel").addEventListener("click", () => close("Cancelled. Nothing was sent."));
 
+  const intro = snapshot.situation ? snapshot.situation.spoken : "What do you need help with?";
+  setStatus(intro);
   input.focus();
-  speak("What do you need help with? Speak after the pause, or type and press Enter.", startListening);
+  speak(intro + " Speak after the pause, or type and press Enter.", startListening);
 }
