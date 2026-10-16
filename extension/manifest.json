@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Blindfold",
+  "version": "0.1.0",
+  "description": "Rescue and Report: help blind users get past inaccessible websites.",
+  "permissions": ["activeTab", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "trigger-help": {
+      "suggested_key": {
+        "default": "Alt+Shift+H",
+        "mac": "Alt+Shift+H"
+      },
+      "description": "Ask Blindfold for help on this page"
+    }
+  }
+}
