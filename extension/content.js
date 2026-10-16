@@ -5,12 +5,12 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "HELP_REQUESTED") {
     console.log("[Blindfold] Help requested on:", location.href);
-    console.log("[Blindfold] Focused element:", document.activeElement);
+    console.log("[Blindfold] Snapshot:", JSON.stringify(buildSnapshot(), null, 2));
 
     // Screen-reader announcement without stealing focus
     announce("Blindfold ready. What do you need help with?");
 
-    sendResponse({ ok: true, url: location.href });
+    sendResponse({ ok: true, snapshot: buildSnapshot() });
   }
   return true;
 });
