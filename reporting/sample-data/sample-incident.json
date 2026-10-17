@@ -1,0 +1,75 @@
+{
+  "incident_id": "demo-001",
+  "user_ref": "anon-install-7f3a",
+  "timestamp": "2026-10-17T10:15:00+05:30",
+  "page_url": "https://www.example-railways.in/book-ticket?session=8f2a91&mobile=9876543210",
+  "page_title": "Book Ticket",
+  "user_goal": "Select journey date 15 November and search trains from New Delhi to Jaipur",
+  "screen_reader_announcement": "Edit text, read only",
+  "stuck_element": {
+    "id": "journeyDate",
+    "role": "textbox",
+    "name": ""
+  },
+  "accessibility_tree": [
+    {
+      "id": "logo",
+      "role": "img",
+      "name": "Example Railways logo"
+    },
+    {
+      "id": "fromStn",
+      "role": "textbox",
+      "name": "From Station"
+    },
+    {
+      "id": "toStn",
+      "role": "textbox",
+      "name": "To Station"
+    },
+    {
+      "id": "journeyDate",
+      "role": "textbox",
+      "name": "",
+      "readonly": true,
+      "keyboard_operable": false,
+      "html": "<input id='journeyDate' readonly>"
+    },
+    {
+      "id": "calBtn",
+      "role": "button",
+      "name": "",
+      "html": "<span class='cal-icon'></span>"
+    },
+    {
+      "id": "offersLink",
+      "role": "link",
+      "name": "",
+      "contains_image": true
+    },
+    {
+      "id": "searchBtn",
+      "role": "button",
+      "name": "Search"
+    }
+  ],
+  "focus_history": [
+    "fromStn",
+    "toStn",
+    "journeyDate",
+    "calBtn",
+    "searchBtn"
+  ],
+  "visible_messages": [
+    "Please select a journey date"
+  ],
+  "announced_messages": [],
+  "rescue": {
+    "completed": true,
+    "actions": [
+      "Opened the calendar",
+      "Selected 15 November",
+      "Pressed Search"
+    ]
+  }
+}
