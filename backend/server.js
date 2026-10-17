@@ -1,3 +1,4 @@
+const agent = require("./agent");
 const http = require("http");
 const crypto = require("crypto");
 
@@ -58,10 +59,38 @@ http.createServer((req, res) => {
         status: "in_progress",
         request: cleanRequest(body),
         confirmed: null,
+        result: null,
+        summary: "I'm checking where you're stuck.",
+        runId: null,
+        error: null,
         createdAt: new Date().toISOString(),
       };
-      console.log("New session", sessionId, JSON.stringify(sessions[sessionId].request, null, 2));
-      return send(res, 200, { sessionId, status: "in_progress" });
+      const session = sessions[sessionId];
+
+(async () => {
+  try {
+    session.runId = await agent.startRun(session.request);
+
+    // TinyFish accepted the job. A separate worker or polling
+    // loop will now retrieve the result.
+    session.status = "in_progress";
+    session.summary = "I've started checking the page.";
+    void processRun(sessionId);
+  } catch (error) {
+    session.status = "failed";
+    session.error = "Unable to start the website check.";
+    session.summary =
+      "I couldn't start the website check. Please try again.";
+
+    // Log only the error category/message, never the request,
+    // API key, snapshot, or raw page contents.
+    console.error("BlindFold agent start failed:", error.message);
+  }
+})();
+    return send(res, 200, {
+  sessionId,
+  status: "in_progress",
+});
     }
 
     // GET /status/:id
@@ -69,7 +98,7 @@ http.createServer((req, res) => {
     if (req.method === "GET" && statusMatch) {
       const s = sessions[statusMatch[1]];
       if (!s) return send(res, 404, { error: "Unknown session" });
-      return send(res, 200, { status: s.status, confirmed: s.confirmed });
+      return send(res, 200, {sessionId: statusMatch[1],status: s.status,confirmed: s.confirmed,summary: s.summary,result: s.result,diagnostic: s.diagnostic || null,});
     }
 
     // POST /confirm/:id  { "answer": "yes" | "no" }
@@ -85,3 +114,60 @@ http.createServer((req, res) => {
     send(res, 404, { error: "Not found" });
   });
 }).listen(PORT, () => console.log("Blindfold backend on http://localhost:" + PORT));
+
+
+async function processRun(sessionId) {
+  const session = sessions[sessionId];
+
+  if (!session || !session.runId) return;
+
+  const deadline = Date.now() + 180_000;
+
+  try {
+    while (Date.now() < deadline) {
+      const data = await agent.getRun(session.runId);
+      const normalized = agent.normalizeRun(data);
+
+      session.status = normalized.status;
+      session.summary = normalized.summary;
+      session.result = normalized.result;
+      session.diagnostic = normalized.diagnostic || null;
+
+      if (normalized.status !== "in_progress") {
+        console.log("BlindFold run finished:", {
+          sessionId,
+          runId: session.runId,
+          status: normalized.status,
+          diagnostic: session.diagnostic,
+        });
+        return;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+    }
+
+    session.status = "failed";
+    session.summary = "The website check timed out.";
+    session.diagnostic = { code: "POLL_TIMEOUT" };
+
+    console.error("BlindFold polling timed out:", {
+      sessionId,
+      runId: session.runId,
+    });
+  } catch (error) {
+    session.status = "failed";
+    session.summary = "The website check failed. Please try again.";
+
+    // Log only safe diagnostic information.
+    session.diagnostic = {
+      code: "POLL_ERROR",
+      message: String(error.message || "Unknown error").slice(0, 200),
+    };
+
+    console.error("BlindFold polling error:", {
+      sessionId,
+      runId: session.runId,
+      message: session.diagnostic.message,
+    });
+  }
+}
