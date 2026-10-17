@@ -20,7 +20,7 @@ const AT_RE = /\s*[[({]\s*at\s*[\])}]\s*/gi;
 const DOT_RE = /\s*[[({]\s*dot\s*[\])}]\s*/gi;
 
 const EMAIL_KEYWORDS = [
-  ['accessib', 50], ['a11y', 50], ['webmaster', 35], ['webinfo', 35], ['web-info', 35],
+  ['accessib', 50], ['a11y', 50], ['webmaster', 35], ['webinfo', 35], ['web-info', 35], ['webguidelines', 30],
   ['wim', 30], ['feedback', 30], ['grievance', 30], ['support', 25], ['help', 20],
   ['contact', 20], ['care', 15], ['info', 15],
 ];
@@ -44,7 +44,7 @@ const sameSite = (url, domain) => {
   const h = hostOf(url);
   return h === domain || h.endsWith(`.${domain}`);
 };
-const isGovernment = (domain) => GOV_SUFFIXES.some((s) => domain.endsWith(s));
+const isGovernment = (domain) => GOV_SUFFIXES.some((s) => domain.endsWith(s) || domain === s.slice(1));
 
 /** Find normal emails and obfuscated ones like "webinfo[at]site[dot]gov[dot]in". */
 function extractEmails(text) {
@@ -82,6 +82,9 @@ function scoreEmail(email, domain, pageUrl = '', pageTitle = '') {
   if (hit) { score += hit[1]; reasons.push(`address contains '${hit[0]}'`); }
   if (emailDomain === domain || emailDomain.endsWith(`.${domain}`) || domain.endsWith(`.${emailDomain}`)) {
     score += 15; reasons.push('same domain as the website');
+  } else if (isGovernment(domain) && isGovernment(emailDomain)) {
+    // Indian government sites are often run by NIC and list official @nic.in / @gov.in addresses.
+    score += 10; reasons.push('official government address');
   } else {
     score -= 10;
   }

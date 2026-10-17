@@ -52,3 +52,10 @@ test('finds the best contact end to end', async () => {
   assert.ok(r.contactPages.includes('https://www.example.gov.in/feedback'));
   assert.ok(r.pagesChecked.every((p) => !p.includes('unrelated.com')));
 });
+
+test('official @nic.in addresses count for government sites', () => {
+  const nic = scoreEmail('webguidelines@nic.in', 'india.gov.in');
+  const outside = scoreEmail('someone@gmail.com', 'india.gov.in');
+  assert.ok(nic.score > outside.score);
+  assert.ok(nic.reason.includes('official government address'));
+});
