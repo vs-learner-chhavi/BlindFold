@@ -28,12 +28,12 @@ function openGoalDialog(snapshot) {
     "border-radius:12px;padding:20px;font:18px/1.4 Arial,sans-serif;box-shadow:0 8px 30px #000a;";
   box.innerHTML =
     '<h2 id="bf-title" style="margin:0 0 10px;font-size:22px;color:#FF8A00">Blindfold</h2>' +
-    '<p id="bf-status" role="status" aria-live="polite" style="margin:0 0 12px">What do you need help with?</p>' +
-    '<label for="bf-goal" style="display:block;margin-bottom:6px">Your goal (press Enter to continue)</label>' +
-    '<input id="bf-goal" type="text" style="width:100%;box-sizing:border-box;padding:10px;font-size:18px;border-radius:6px;border:2px solid #14B8A6">' +
+    '<p id="bf-status" role="status" aria-live="polite" style="margin:0 0 12px;color:#fff">What do you need help with?</p>' +
+    '<label for="bf-goal" style="display:block;margin-bottom:6px;color:#fff">Your goal (press Enter to continue)</label>' +
+    '<input id="bf-goal" type="text" style="width:100%;box-sizing:border-box;padding:10px;font-size:18px;border-radius:6px;border:2px solid #14B8A6;color:#000 !important;background:#fff !important">' +
     '<div style="margin-top:12px;display:flex;gap:10px">' +
-    '<button id="bf-speak" type="button" style="padding:10px 14px;font-size:16px;background:#14B8A6;border:0;border-radius:6px">Speak</button>' +
-    '<button id="bf-cancel" type="button" style="padding:10px 14px;font-size:16px;background:#fff;border:0;border-radius:6px">Cancel</button>' +
+    '<button id="bf-speak" type="button" style="padding:10px 14px;font-size:16px;background:#14B8A6 !important;color:#000 !important;border:0;border-radius:6px">Speak</button>' +
+    '<button id="bf-cancel" type="button" style="padding:10px 14px;font-size:16px;background:#fff !important;color:#0B1F3A !important;border:0;border-radius:6px">Cancel</button>' +
     "</div>";
   document.body.appendChild(box);
 

@@ -50,12 +50,43 @@ function describeSituation(nearby) {
       spoken: "You are on a private field, like a password or personal detail. I will not read or fill it. What else do you need help with?",
     };
   }
+  const cal = describeCalendar(
+    el.closest("[role=dialog], dialog, [class*=calendar i], [class*=datepicker i]") || el,
+    nearby
+  );
+  if (cal) return cal;
 
-  const readName = accessibleName(el);   // what the screen reader says
-  const seen = visibleLabel(el);         // what a sighted user sees
-  const hint = [readName, seen, el.placeholder, el.name, el.id, el.type].join(" ");
-  let kind = el.type === "date" ? "date" : "other";
-  if (kind === "other") for (const [re, k] of KINDS) if (re.test(hint)) { kind = k; break; }
+  const readName = accessibleName(el);
+  const role = (el.getAttribute("role") || "").toLowerCase();
+  const tag = el.tagName.toLowerCase();
+
+  const isDialog =
+    role === "dialog" ||
+    role === "alertdialog" ||
+    tag === "dialog";
+
+  const seen = isDialog ? "" : visibleLabel(el);
+
+  // Use the focused control's own metadata for field classification.
+  // Do not classify a dialog from its entire accessible name.
+  const hint = [
+    el.type,
+    el.getAttribute("aria-label"),
+    el.getAttribute("placeholder"),
+    el.getAttribute("name"),
+    el.id
+  ].filter(Boolean).join(" ");
+
+let kind = el.type === "date" ? "date" : "other";
+
+if (!isDialog && kind === "other") {
+  for (const [re, k] of KINDS) {
+    if (re.test(hint)) {
+      kind = k;
+      break;
+    }
+  }
+}
 
   const issues = [];
   if (!readName) issues.push("has no name for the screen reader");
@@ -77,6 +108,30 @@ function describeSituation(nearby) {
     summary:
       "Focused a " + kind + " field. Screen reader name: " + (readName || "none") +
       ". Visible label: " + (seen || "none") + ". Problems: " + (issues.join("; ") || "none found") + ".",
+    spoken: parts.join(" "),
+  };
+}
+
+const MONTH_RE = /(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d\d)/i;
+
+function describeCalendar(root, nearby) {
+  const m = ((root.innerText || "").slice(0, 400)).match(MONTH_RE);
+  const days = (nearby || []).filter((n) => /^\d{1,2}$/.test(n.name || ""));
+  if (!m || days.length < 7) return null;
+
+  const month = m[1] + " " + m[2];
+  const enabled = days.filter((n) => !n.state.disabled).map((n) => Number(n.name));
+  const firstOpen = enabled.length ? Math.min(...enabled) : null;
+  const blocked = days.length - enabled.length;
+
+  const parts = ["A calendar is open, showing " + month + "."];
+  if (blocked && firstOpen) parts.push("Dates before the " + firstOpen + "th can't be chosen.");
+  parts.push("To reach another month, use the arrow buttons. Which date do you want?");
+
+  return {
+    fieldKind: "calendar",
+    issues: [],
+    summary: "A date picker calendar is open showing " + month + (firstOpen ? ", earliest selectable day " + firstOpen : "") + ".",
     spoken: parts.join(" "),
   };
 }

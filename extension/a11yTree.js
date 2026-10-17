@@ -23,24 +23,52 @@ function isVisible(el) {
 }
 
 function describeNode(el) {
-  const name = accessibleName(el);
+  const rawName = accessibleName(el);
+  const sensitive = isSensitiveField(el);
+  const name = sensitive ? "[sensitive field]" : rawName;
+
   const tabindex = el.getAttribute("tabindex");
-  const nativeFocusable = /^(a|button|input|select|textarea)$/i.test(el.tagName);
+  const nativeFocusable = /^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/i.test(
+    el.tagName
+  );
+
+  const role = el.getAttribute("role") || el.tagName.toLowerCase();
+
   return {
-    role: el.getAttribute("role") || el.tagName.toLowerCase(),
-    name: isSensitiveField(el) ? "[sensitive field]" : name,
-    unnamed: name === "",                       // key evidence for "button with no name"
-    keyboardReachable: nativeFocusable || (tabindex !== null && Number(tabindex) >= 0),
-    hasMouseHandler: el.hasAttribute("onclick"),
+    role,
+    name: name || "",
+    unnamed: !rawName.trim() && !sensitive,
+    nameRedacted: sensitive,
+    keyboardReachable:
+      nativeFocusable ||
+      (tabindex !== null && Number(tabindex) >= 0),
+
+    hasMouseHandler:
+      el.hasAttribute("onclick") ||
+      typeof el.onclick === "function",
+
     state: {
-      disabled: !!el.disabled,
-      readonly: !!el.readOnly,
+      disabled:
+        !!el.disabled ||
+        el.getAttribute("aria-disabled") === "true",
+
+      readonly:
+        !!el.readOnly ||
+        el.getAttribute("aria-readonly") === "true",
+
       expanded: el.getAttribute("aria-expanded"),
+      checked: el.getAttribute("aria-checked"),
+      selected: el.getAttribute("aria-selected"),
+      pressed: el.getAttribute("aria-pressed"),
+      required:
+        !!el.required ||
+        el.getAttribute("aria-required") === "true",
+      invalid: el.getAttribute("aria-invalid"),
     },
   };
 }
 
-function buildNearbyTree(limit = 25) {
+function buildNearbyTree(limit = 50) {
   const root = findContainer(document.activeElement);
   const nodes = [];
   root.querySelectorAll(INTERACTIVE).forEach((el) => {
