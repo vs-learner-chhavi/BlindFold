@@ -1,5 +1,5 @@
 
-const TINYFISH_BASE_URL = "https://agent.tinyfish.ai/v1";
+const TINYFISH_BASE_URL = process.env.TINYFISH_BASE_URL || "https://agent.tinyfish.ai/v1";
 
 
 

@@ -1,8 +1,19 @@
 // Goal capture (2.3 voice, 2.4 typed fallback) + read-back confirmation.
+// Text that goes to the speech engine or the dialog must be plain words: no markdown
+// asterisks, hashes, backticks or raw URLs ("star star" read aloud is useless to a blind user).
+function bfPlain(text) {
+  return String(text == null ? "" : text)
+    .replace(/https?:\/\/([^\s/)]+)[^\s)]*/gi, "$1")
+    .replace(/[*_`#>~|]+/g, " ")
+    .replace(/^\s*[-\u2022]\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function speak(text, onEnd) {
   try {
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(bfPlain(text));
     u.lang = "en-IN";
     if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
     speechSynthesis.speak(u);

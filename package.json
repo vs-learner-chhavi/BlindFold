@@ -1,0 +1,12 @@
+{
+  "name": "blindfold",
+  "private": true,
+  "version": "0.2.0",
+  "scripts": {
+    "start": "node backend/server.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.0"
+  }
+}
