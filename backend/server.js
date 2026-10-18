@@ -1,29 +1,17 @@
 require("./env").loadEnv(); // must run before agent.js reads process.env
 
-const reporting = require("../reporting");
-const { toIncident } = require("./incident");
-const delivery = new reporting.DeliveryService();   // check this export name
-const contactsCache = {};
+const fs = require("fs");
+const path = require("path");
+const http = require("http");
+const crypto = require("crypto");
 
-async function reportIncident(session) {
-  if (!session.request.reportingEnabled || session.reported) return;
-  session.reported = true;
-  try {
-    const incident = toIncident(session);
-    const host = new URL(incident.page_url).hostname;
-    if (!contactsCache[host]) contactsCache[host] = await reporting.findContacts(incident.page_url);
-    const report = reporting.generateReport(incident);
-    delivery.ingest(report, incident.user_ref, contactsCache[host]);
-    console.log("Report queued for", host);
-  } catch (e) { console.warn("report error:", e.message); }
-}
-setInterval(() => delivery.run().catch(console.error), 3600 * 1000);
 const agent = require("./agent");
 const planner = require("./planner");
 const gemini = require("./gemini");
-const http = require("http");
-const crypto = require("crypto");
 const { redact, SENSITIVE_FIELD } = require("./safety");
+
+const reporting = require("../reporting");
+const { toIncident } = require("./incident");
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || "127.0.0.1";
@@ -31,9 +19,61 @@ const MAX_STEPS = 12;
 const MAX_BODY = 1_000_000;
 const sessions = {}; // in-memory for now
 
+// ---------------------------------------------------------------------------
+// Reporting (components 5, 6, 7)
+// ---------------------------------------------------------------------------
+const delivery = new reporting.DeliveryService(); // check this export name in reporting/index.js
+const contactsCache = {};
+
+const INTERACTIVE_ROLES = /^(button|link|textbox|combobox|select|switch|a|input|textarea|clickable)$/;
+
+function hasConfirmedBarrier(incident) {
+  return (incident.accessibility_tree || []).some(
+    (n) => INTERACTIVE_ROLES.test(n.role) && (!n.name || n.keyboard_operable === false || n.readonly)
+  );
+}
+
+async function reportIncident(session, why) {
+  if (!session.request.reportingEnabled) { console.log("Report skipped: reporting is off"); return; }
+  if (session.reported) return;
+  session.reported = true;
+  try {
+    const incident = toIncident(session);
+    const report = reporting.generateReport(incident);
+
+    const dir = path.join(__dirname, "..", "reporting", "output");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "last-report.md"), reporting.toMarkdown(report));
+    console.log("Report written: reporting/output/last-report.md (" + why + ")");
+
+    if (!hasConfirmedBarrier(incident)) {
+      console.log("Not queued for sending: no confirmed barrier found, needs manual review.");
+      return;
+    }
+    const host = new URL(incident.page_url).hostname;
+    let contacts = null;
+    try {
+      if (!contactsCache[host]) contactsCache[host] = await reporting.findContacts(incident.page_url);
+      contacts = contactsCache[host];
+    } catch (e) { console.warn("contact finder skipped:", e.message); }
+
+    delivery.ingest(report, incident.user_ref, contacts);
+    console.log("Report queued for", host);
+  } catch (e) { console.warn("report error:", e.message); }
+}
+
+setInterval(() => delivery.run().catch(console.error), 3600 * 1000);
+
+// ---------------------------------------------------------------------------
+// Request cleaning and access control
+// ---------------------------------------------------------------------------
 function cleanRequest(body) {
   const safeValues = (body.safeValues || []).filter((v) => !SENSITIVE_FIELD.test(v.field || ""));
-  return{ ...redact({ ...body, safeValues, userRef: undefined }),userRef: body.userRef};
+  return {
+    ...redact({ ...body, safeValues, userRef: undefined }),
+    userRef: body.userRef,
+    reportingEnabled: body.reportingEnabled === true,
+  };
 }
 
 // Only the Blindfold extension may talk to this backend. Web pages must not be able to
@@ -58,6 +98,9 @@ function send(res, code, data, origin) {
   res.end(JSON.stringify(data));
 }
 
+// ---------------------------------------------------------------------------
+// Server
+// ---------------------------------------------------------------------------
 function createServer() {
   return http.createServer((req, res) => {
     const origin = req.headers.origin;
@@ -100,8 +143,14 @@ function createServer() {
           replies: [],
           history: [],
           pending: null,
+          completed: false,
+          reported: false,
         };
         const session = sessions[sessionId];
+
+        // TEMPORARY TEST LINE: uncomment to prove the report pipeline before the full rescue works.
+        // Remove it afterwards, or the report is made before the rescue finishes.
+        // reportIncident(session, "test at /help");
 
         (async () => {
           try {
@@ -193,7 +242,14 @@ async function handleNext(s, body) {
   }
 
   if (s.step >= MAX_STEPS) {
-    return { kind: "done", verified: false, spoken: "I've reached my limit of steps for one request, so I'll stop here. Nothing else will happen.", step: s.step };
+    s.completed = false;
+    reportIncident(s, "step limit");
+    return {
+      kind: "done",
+      verified: false,
+      spoken: "I've reached my limit of steps for one request, so I'll stop here. Nothing else will happen.",
+      step: s.step,
+    };
   }
 
   // 2) Plan exactly one next step.
@@ -229,7 +285,12 @@ async function handleNext(s, body) {
       expect: a.expect, description: a.description,
     };
   }
-  if (plan.status === "done") out.verified = !!plan.verified;
+
+  if (plan.status === "done") {
+    out.verified = !!plan.verified;
+    s.completed = !!plan.verified;
+    reportIncident(s, plan.verified ? "rescued" : "ended unverified");
+  }
 
   console.log("BlindFold step:", { step: out.step, kind: out.kind, source: out.source });
   return out;
