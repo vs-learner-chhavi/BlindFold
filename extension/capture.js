@@ -12,7 +12,7 @@ function accessibleName(el) {
     el.getAttribute("placeholder") ||
     el.innerText ||
     "";
-  return label.trim().slice(0, 100);
+  return label.replace(/\s+/g, " ").trim().slice(0, 100);
 }
 
 function describeElement(el) {
