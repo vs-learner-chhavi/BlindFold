@@ -100,3 +100,15 @@ function slideHero(direction) {
 setInterval(() => {
     slideHero(1);
 }, 5000);
+
+// Footer Report Logic
+function sendReport() {
+    const emailInput = document.getElementById('report-email');
+    const email = emailInput.value.trim();
+    
+    if (email === "") {
+        alert("Please enter a valid email address first.");
+    } else {
+        alert(`Success! The BlindFold accessibility report will be sent to: ${email}`);
+    }
+}

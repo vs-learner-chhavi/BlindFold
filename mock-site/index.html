@@ -20,7 +20,7 @@
                 <div class="nav-location">
                     <div class="loc-icon">📍</div>
                     <div class="loc-text">
-                        <span class="loc-line1">Delivering to Dwarka</span>
+                        <span class="loc-line1">Delivering to Sonipat</span>
                         <span class="loc-line2">Update location</span>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
         <nav class="nav-belt">
             <div class="menu-icon" onclick="toggleSidebar()">☰ All</div>
             <a href="#">Fresh</a>
-            <a href="#">MaxiTV</a>
+            <a href="#">Amazon miniTV</a>
             <a href="#">Sell</a>
             <a href="#">Best Sellers</a>
             <a href="#">Mobiles</a>
@@ -113,7 +113,7 @@
                 </div>
 
                 <div class="quad-card">
-                    <h2>Starting ₹40000 | Laptops</h2>
+                    <h2>Starting ₹149 | Headphones</h2>
                     <img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=300&q=80">
                     <a href="#">See all offers</a>
                     <button onclick="addToCart()" style="background: #ffd814; border: 1px solid #fcd200; border-radius: 50px; padding: 8px 15px; cursor: pointer; margin-top: 10px;">Add to Cart</button>
@@ -121,7 +121,7 @@
 
                 <div class="quad-card form-card">
                     <h2>Sign in for your best experience</h2>
-                    <!-- TRAP: Div styled as a button. Keyboard users cannot tab to it or press enter. -->
+                    <!-- TRAP: Div styled as a button with aria-hidden so screen readers completely ignore it -->
                     <div class="fake-btn" onclick="showLogin()" aria-hidden="true">Sign in securely</div>
                 </div>
 
@@ -173,11 +173,16 @@
                     <a href="#">Protect and Build Your Brand</a>
                     <a href="#">ShopZen Global Selling</a>
                 </div>
+                <!-- NEW REPORT COLUMN -->
                 <div class="link-column">
-                    <h3>Let Us Help You</h3>
-                    <a href="#">COVID-19 and ShopZen</a>
-                    <a href="#">Your Account</a>
-                    <a href="#">Returns Centre</a>
+                    <h3>Accessibility Report</h3>
+                    <p style="font-size: 13px; color: #ddd; margin-bottom: 10px; line-height: 1.4;">
+                        Enter your email to receive the BlindFold AI audit report for this session.
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <input type="email" id="report-email" value="aryannsutmac@gmail.com" placeholder="Email address" style="padding: 8px; border-radius: 3px; border: none; outline: none; font-size: 13px;">
+                        <button onclick="sendReport()" style="background: #f0c14b; border: 1px solid #a88734; border-radius: 3px; padding: 8px; cursor: pointer; font-size: 13px; font-weight: bold;">Send Report</button>
+                    </div>
                 </div>
             </div>
         </footer>
@@ -209,7 +214,7 @@
                 <div class="form-group">
                     <span class="fake-label">Enter the characters below</span>
                     <img src="https://dummyimage.com/150x50/f0f0f0/000000.png&text=X9B2mQ" style="width: 150px; border: 1px solid #ccc; margin-bottom: 5px;">
-                    <input type="text" class="login-input" />
+                    <input type="text" class="login-input" placeholder="Type characters" />
                 </div>
 
                 <!-- TRAP 4: A <div> styled as a button. Keyboard users cannot tab to it or press Enter -->
