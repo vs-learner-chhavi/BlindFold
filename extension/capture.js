@@ -11,7 +11,6 @@ function accessibleName(el) {
     el.getAttribute("title") ||
     el.getAttribute("placeholder") ||
     el.innerText ||
-    el.name ||
     "";
   return label.trim().slice(0, 100);
 }
@@ -27,6 +26,7 @@ function describeElement(el) {
       expanded: el.getAttribute("aria-expanded"),
       checked: el.checked ?? null,
     },
+    id: elId(el),
   };
 }
 
@@ -55,13 +55,18 @@ function cleanUrl(href) {
 
 function buildSnapshot() {
   const nearbyTree = buildNearbyTree();
+  const f = describeElement(document.activeElement);
   return {
     pageUrl: cleanUrl(location.href),
     pageTitle: document.title,
+    headings: Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,h6,[role=heading]"))
+    .slice(0, 20).map((h) => ({ id: elId(h), role: "heading", name: "section heading" })),
     focusedElement: describeElement(document.activeElement),
     nearbyTree,
     safeValues: getSafeValues(),
     situation: describeSituation(nearbyTree),
     capturedAt: new Date().toISOString(),
+    focusHistory: focusHistory.slice(),
+    announcement: f ? (f.name ? f.role + ", " + f.name : f.role) : "",
   };
 }

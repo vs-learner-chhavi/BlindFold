@@ -1,5 +1,20 @@
 // Collects interactive elements near the focused element: role, name, state.
 // Never reads field values.
+const _ids = new WeakMap(); let _n = 0;
+function elId(el) {
+  if (!el) return null;
+  if (!_ids.has(el)) _ids.set(el, "e" + (++_n));
+  return _ids.get(el);
+}
+const focusHistory = [];
+document.addEventListener("focusin", (e) => {
+  if (e.target.closest && e.target.closest("#blindfold-dialog")) return;
+  const id = elId(e.target);
+  if (id && focusHistory[focusHistory.length - 1] !== id) {
+    focusHistory.push(id);
+    if (focusHistory.length > 30) focusHistory.shift();
+  }
+}, true);
 
 const INTERACTIVE =
   'a[href], button, input, select, textarea, [role], [tabindex], [onclick]';
@@ -64,6 +79,8 @@ function describeNode(el) {
         !!el.required ||
         el.getAttribute("aria-required") === "true",
       invalid: el.getAttribute("aria-invalid"),
+      id: elId(el),
+      containsImage: !!el.querySelector("img, svg"),
     },
   };
 }
