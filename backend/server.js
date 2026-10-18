@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const http = require("http");
 const crypto = require("crypto");
+const db = require("./db");
 
 const agent = require("./agent");
 const planner = require("./planner");
@@ -45,24 +46,37 @@ async function reportIncident(session, why) {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, "last-report.md"), reporting.toMarkdown(report));
     console.log("Report written: reporting/output/last-report.md (" + why + ")");
+    db.finishSession(session.id, session.completed).catch(() => {});
 
-    if (!hasConfirmedBarrier(incident)) {
+    // Only barriers the generator itself confirmed go any further.
+    const confirmed = report.barriers.filter((b) => b.verified);
+    if (!confirmed.length) {
+      const t = incident.accessibility_tree || [];
       console.log("Not queued for sending: no confirmed barrier found, needs manual review.");
+      console.log("Checked", t.length, "items | roles:", [...new Set(t.map((n) => n.role))].join(","));
       return;
     }
+
+    try {
+      const saved = await db.saveReport(report, session.request.userRef);
+      if (saved) console.log("Saved to database:", saved.problems, "confirmed problem(s)");
+    } catch (e) { console.warn("database save skipped:", e.message); }
+
     const host = new URL(incident.page_url).hostname;
     let contacts = null;
     try {
       if (!contactsCache[host]) contactsCache[host] = await reporting.findContacts(incident.page_url);
       contacts = contactsCache[host];
+      db.saveContact(report.website.domain, contacts).catch(() => {});
     } catch (e) { console.warn("contact finder skipped:", e.message); }
 
-    delivery.ingest(report, incident.user_ref, contacts);
+    delivery.ingest({ ...report, barriers: confirmed }, incident.user_ref, contacts);
     console.log("Report queued for", host);
   } catch (e) { console.warn("report error:", e.message); }
 }
 
 setInterval(() => delivery.run().catch(console.error), 3600 * 1000);
+setInterval(() => db.cleanup().catch(() => {}), 3600 * 1000);
 
 // ---------------------------------------------------------------------------
 // Request cleaning and access control
@@ -130,6 +144,7 @@ function createServer() {
         if (!body.pageUrl || !body.userGoal) return reply(400, { error: "pageUrl and userGoal required" });
         const sessionId = crypto.randomUUID();
         sessions[sessionId] = {
+          id: "sessionId",
           status: "in_progress",
           request: cleanRequest(body),
           confirmed: null,
@@ -147,6 +162,9 @@ function createServer() {
           reported: false,
         };
         const session = sessions[sessionId];
+        let host = "";
+        try { host = new URL(body.pageUrl).hostname; } catch {}
+        db.saveSession(sessionId, host).catch((e) => console.warn("db session:", e.message));
 
         // TEMPORARY TEST LINE: uncomment to prove the report pipeline before the full rescue works.
         // Remove it afterwards, or the report is made before the rescue finishes.
@@ -208,7 +226,24 @@ function createServer() {
         s.status = s.confirmed ? "in_progress" : "failed";
         return reply(200, { confirmed: s.confirmed });
       }
+      
+      if (req.method === "GET" && req.url === "/tracker") {
+        return db.getTracker().then(
+          (rows) => reply(200, { problems: rows }),
+          () => reply(500, { error: "Tracker unavailable" })
+        );
+      }
 
+      const fixedMatch = req.url.match(/^\/fixed\/([0-9a-f]{12})$/);
+      if (req.method === "POST" && fixedMatch) {
+        if (!process.env.ADMIN_TOKEN || req.headers["x-admin-token"] !== process.env.ADMIN_TOKEN) {
+          return reply(403, { error: "Forbidden" });
+        }
+        return db.markFixed(fixedMatch[1], body.status === "verified" ? "verified" : "fixed").then(
+          (r) => (r ? reply(200, r) : reply(404, { error: "Unknown problem" })),
+          () => reply(500, { error: "Update failed" })
+        );
+      }
       reply(404, { error: "Not found" });
     });
   });
@@ -355,6 +390,7 @@ async function processRun(sessionId) {
 if (require.main === module) {
   createServer().listen(PORT, HOST, async () => {
     console.log(`Blindfold backend on http://localhost:${PORT}`);
+    await db.init().catch((e) => console.error("Database failed:", e.message));
     const g = await gemini.check();
     if (g.ok) console.log(`Gemini planner ready (model: ${g.model})`);
     else console.error(`Gemini planner NOT working: ${g.reason}`);
