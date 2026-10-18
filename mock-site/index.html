@@ -1,238 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopZen.in: Shop Online for Mobiles, Books, Watches, Shoes and More</title>
+    <title>Demo Seva Portal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <!-- MAIN CONTENT WRAPPER: Hidden when login is active to prevent screen reader bleed -->
-    <div id="main-wrap">
-        
-        <!-- Top Navigation -->
-        <header class="nav-main">
-            <div class="nav-left">
-                <div class="nav-logo">
-                    <span class="logo-text">ShopZen<span class="logo-in">.in</span></span>
-                </div>
-                <div class="nav-location">
-                    <div class="loc-icon">📍</div>
-                    <div class="loc-text">
-                        <span class="loc-line1">Delivering to Sonipat</span>
-                        <span class="loc-line2">Update location</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="nav-fill">
-                <div class="nav-search">
-                    <div class="search-dropdown">All</div>
-                    <!-- TRAP: Missing label and aria-label -->
-                    <input type="text" class="search-input" placeholder="Search ShopZen.in">
-                    <!-- TRAP: Missing accessible name for screen readers -->
-                    <button class="search-icon">🔍</button>
-                </div>
-            </div>
-
-            <div class="nav-right">
-                <div class="nav-item" onclick="handleAuthClick('account')">
-                    <span class="nav-line1">Hello, sign in</span>
-                    <span class="nav-line2">Account & Lists</span>
-                </div>
-                <div class="nav-item" onclick="handleAuthClick('orders')">
-                    <span class="nav-line1">Returns</span>
-                    <span class="nav-line2">& Orders</span>
-                </div>
-                <div class="nav-cart" onclick="handleAuthClick('cart')">
-                    <span class="cart-icon">🛒</span>
-                    <span id="cart-count" class="cart-count">0</span>
-                    <span class="nav-line2">Cart</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- Sub Navigation -->
-        <nav class="nav-belt">
-            <div class="menu-icon" onclick="toggleSidebar()">☰ All</div>
-            <a href="#">Fresh</a>
-            <a href="#">Amazon miniTV</a>
-            <a href="#">Sell</a>
-            <a href="#">Best Sellers</a>
-            <a href="#">Mobiles</a>
-            <a href="#">Today's Deals</a>
-            <a href="#">Customer Service</a>
-            <a href="#">Electronics</a>
-        </nav>
-
-        <!-- Sidebar Overlay (Hidden by default) -->
-        <div id="sidebar-overlay" class="overlay" onclick="toggleSidebar()"></div>
-        <div id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <span>Hello, sign in</span>
-                <span class="close-btn" onclick="toggleSidebar()">✕</span>
-            </div>
-            <div class="sidebar-content">
-                <h3>Trending</h3>
-                <a href="#">Best Sellers</a>
-                <a href="#">New Releases</a>
-                <a href="#">Movers and Shakers</a>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <main class="main-body">
-            <!-- Hero Carousel -->
-            <div class="hero-slider">
-                <!-- TRAP: Meaningful image missing alt text -->
-                <img id="hero-img" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1500&q=80">
-                <div class="slider-btn left" onclick="slideHero(-1)">❮</div>
-                <div class="slider-btn right" onclick="slideHero(1)">❯</div>
-            </div>
-
-            <!-- 4-Quadrant Grids -->
-            <div class="card-grid">
-                
-                <div class="quad-card">
-                    <h2>Up to 70% off | Clearance store</h2>
-                    <!-- TRAP: Images missing alt text -->
-                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80">
-                    <a href="#">See more</a>
-                </div>
-
-                <div class="quad-card">
-                    <h2>Upgrade your home | Brands & more</h2>
-                    <div class="quad-img-grid">
-                        <div><img src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=150&q=80"><span>Smart TVs</span></div>
-                        <div><img src="https://images.unsplash.com/photo-1585336261022-680e295ce3fe?auto=format&fit=crop&w=150&q=80"><span>Appliances</span></div>
-                        <div><img src="https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?auto=format&fit=crop&w=150&q=80"><span>Furniture</span></div>
-                        <div><img src="https://images.unsplash.com/photo-1583847268964-b28ce8f30f65?auto=format&fit=crop&w=150&q=80"><span>Kitchen</span></div>
-                    </div>
-                    <a href="#">Shop now</a>
-                </div>
-
-                <div class="quad-card">
-                    <h2>Starting ₹149 | Headphones</h2>
-                    <img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=300&q=80">
-                    <a href="#">See all offers</a>
-                    <button onclick="addToCart()" style="background: #ffd814; border: 1px solid #fcd200; border-radius: 50px; padding: 8px 15px; cursor: pointer; margin-top: 10px;">Add to Cart</button>
-                </div>
-
-                <div class="quad-card form-card">
-                    <h2>Sign in for your best experience</h2>
-                    <!-- TRAP: Div styled as a button with aria-hidden so screen readers completely ignore it -->
-                    <div class="fake-btn" onclick="showLogin()" aria-hidden="true">Sign in securely</div>
-                </div>
-
-            </div>
-
-            <!-- Horizontal Scroller -->
-            <div class="horizontal-scroll">
-                <h2>Today's Deals <span><a href="#">See all deals</a></span></h2>
-                <div class="deal-list">
-                    <div class="deal-item">
-                        <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=200&q=80">
-                        <div class="deal-badge">Up to 25% off</div>
-                        <!-- TRAP: Poor color contrast -->
-                        <div class="deal-text">Deal of the Day</div>
-                    </div>
-                    <div class="deal-item">
-                        <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=200&q=80">
-                        <div class="deal-badge">Up to 40% off</div>
-                        <div class="deal-text">Limited time deal</div>
-                    </div>
-                    <div class="deal-item">
-                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80">
-                        <div class="deal-badge">Up to 60% off</div>
-                        <div class="deal-text">Deal of the Day</div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer>
-            <div class="back-to-top" onclick="window.scrollTo(0,0)">Back to top</div>
-            <div class="footer-links">
-                <div class="link-column">
-                    <h3>Get to Know Us</h3>
-                    <a href="#">About Us</a>
-                    <a href="#">Careers</a>
-                    <a href="#">Press Releases</a>
-                </div>
-                <div class="link-column">
-                    <h3>Connect with Us</h3>
-                    <a href="#">Facebook</a>
-                    <a href="#">Twitter</a>
-                    <a href="#">Instagram</a>
-                </div>
-                <div class="link-column">
-                    <h3>Make Money with Us</h3>
-                    <a href="#">Sell on ShopZen</a>
-                    <a href="#">Protect and Build Your Brand</a>
-                    <a href="#">ShopZen Global Selling</a>
-                </div>
-                <!-- NEW REPORT COLUMN -->
-                <div class="link-column">
-                    <h3>Accessibility Report</h3>
-                    <p style="font-size: 13px; color: #ddd; margin-bottom: 10px; line-height: 1.4;">
-                        Enter your email to receive the BlindFold AI audit report for this session.
-                    </p>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <input type="email" id="report-email" value="aryannsutmac@gmail.com" placeholder="Email address" style="padding: 8px; border-radius: 3px; border: none; outline: none; font-size: 13px;">
-                        <button onclick="sendReport()" style="background: #f0c14b; border: 1px solid #a88734; border-radius: 3px; padding: 8px; cursor: pointer; font-size: 13px; font-weight: bold;">Send Report</button>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    
-    </div> <!-- END MAIN WRAPPER -->
-
-    <!-- Full Screen Login Modal -->
-    <div id="login-modal" class="login-modal">
-        <div class="back-btn" onclick="closeLogin()">❮ Back</div>
-        <div class="login-container">
-            <div class="login-logo" onclick="closeLogin()">Shop<span>Zen</span></div>
-            
-            <div class="login-box">
-                <h1>Sign in</h1>
-
-                <!-- TRAP 1: Missing <label> tag. Screen reader will say "Edit text, blank" instead of "Email" -->
-                <div class="form-group">
-                    <span class="fake-label">Email or mobile phone number</span>
-                    <input type="text" class="login-input" />
-                </div>
-
-                <!-- TRAP 2: Missing <label> tag for highly sensitive password field -->
-                <div class="form-group">
-                    <span class="fake-label">Password</span>
-                    <input type="password" class="login-input" />
-                </div>
-
-                <!-- TRAP 3: Image CAPTCHA missing alt="" text with a working dummy image URL -->
-                <div class="form-group">
-                    <span class="fake-label">Enter the characters below</span>
-                    <img src="https://dummyimage.com/150x50/f0f0f0/000000.png&text=X9B2mQ" style="width: 150px; border: 1px solid #ccc; margin-bottom: 5px;">
-                    <input type="text" class="login-input" placeholder="Type characters" />
-                </div>
-
-                <!-- TRAP 4: A <div> styled as a button. Keyboard users cannot tab to it or press Enter -->
-                <div class="fake-submit-btn" onclick="performLogin()">Continue</div>
-
-                <div class="login-terms">
-                    By continuing, you agree to ShopZen's <a href="#">Conditions of Use</a> and <a href="#">Privacy Notice</a>.
-                </div>
-            </div>
-
-            <div class="new-to-shopzen">
-                <div class="divider"><span>New to ShopZen?</span></div>
-                <!-- TRAP 5: Another inaccessible <div> button -->
-                <div class="fake-create-btn">Create your ShopZen account</div>
-            </div>
+    <!-- Top Utility Bar -->
+    <div class="top-bar">
+        <div>Government of DemoState | Ministry of Electronic Services</div>
+        <div class="top-bar-right">
+            <span onclick="skipToMain()" onkeypress="if(event.key==='Enter') skipToMain()" tabindex="0" style="cursor: pointer;">Skip to Main Content</span>
+            <span>A- | A | A+</span>
         </div>
     </div>
 
+    <header class="header-main">
+        <div class="logo-area" onclick="goTo('index')">
+            <!-- TRAP: Meaningless, raw filename alt text -->
+            <img src="https://dummyimage.com/60x60/ffffff/0f4a8a.png&text=DS" alt="DS_Logo_final_v2_2026.png" class="trap-only" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+            <!-- FIXED: Proper descriptive alt text -->
+            <img src="https://dummyimage.com/60x60/ffffff/0f4a8a.png&text=DS" alt="State Emblem of DemoState" class="fixed-only" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+            
+            <div class="logo-text">
+                <h2>Demo Seva Portal</h2>
+                <p>Digital Citizen Services</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <!-- TRAP: Unnamed Button. Icon only, no text, empty alt. Screen reader says "Unlabelled Button" -->
+            <button class="icon-btn trap-only" style="padding: 6px 10px;">
+                <img src="https://img.icons8.com/ios-glyphs/24/000000/geography.png" alt="">
+            </button>
+            <!-- FIXED: Button with aria-label -->
+            <button class="icon-btn fixed-only" aria-label="Switch Language to Hindi" style="padding: 6px 10px;">
+                <img src="https://img.icons8.com/ios-glyphs/24/000000/geography.png" alt="">
+            </button>
+            
+            <button class="nav-btn" onclick="goTo('login')">Citizen Login</button>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Seamless Access to Government Services</h1>
+            <p>A unified digital platform empowering citizens with secure, transparent, and instant access to certificates, scholarships, and public welfare schemes.</p>
+            <button class="nav-btn" style="background: var(--gov-saffron); font-size: 16px; padding: 14px 30px;" onclick="goTo('apply')">Apply for Services</button>
+        </div>
+    </div>
+
+    <div class="container" id="main-content" tabindex="-1">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 30px;">
+            <!-- TRAP: Styled div acting as a heading without heading role -->
+            <div class="fake-heading trap-only" style="border: none; padding: 0; margin: 0;">Featured Citizen Services</div>
+            <!-- FIXED: Real H2 -->
+            <h2 class="fixed-only" style="margin: 0;">Featured Citizen Services</h2>
+            <a href="#" style="color: var(--gov-blue); font-weight: 600; font-size: 14px; text-decoration: none;">View All Services →</a>
+        </div>
+        
+        <div class="services-grid">
+            <!-- TRAP: Div with onclick. Keyboard users CANNOT tab to this. -->
+            <div class="service-card trap-only" onclick="goTo('apply')">
+                <img src="https://img.icons8.com/fluency/96/diploma.png" alt="">
+                <div class="card-title">Scholarship Schemes</div>
+                <div class="card-desc">Apply for pre-matric, post-matric, and higher education state scholarships.</div>
+            </div>
+            <!-- FIXED: Keyboard focusable via tabindex="0", semantic role="button", keyboard event handler -->
+            <div class="service-card fixed-only" onclick="goTo('apply')" tabindex="0" role="button" aria-label="Apply for Scholarship Schemes" onkeypress="if(event.key==='Enter') goTo('apply')">
+                <img src="https://img.icons8.com/fluency/96/diploma.png" alt="">
+                <div class="card-title">Scholarship Schemes</div>
+                <div class="card-desc">Apply for pre-matric, post-matric, and higher education state scholarships.</div>
+            </div>
+
+            <!-- TRAP: Mouse-only div -->
+            <div class="service-card trap-only" onclick="goTo('appointment')">
+                <img src="https://img.icons8.com/fluency/96/overtime.png" alt="">
+                <div class="card-title">Office Appointments</div>
+                <div class="card-desc">Schedule visits to local SDM and Tehsildar offices for document verification.</div>
+            </div>
+            <!-- FIXED -->
+            <div class="service-card fixed-only" onclick="goTo('appointment')" tabindex="0" role="button" aria-label="Book Office Appointments" onkeypress="if(event.key==='Enter') goTo('appointment')">
+                <img src="https://img.icons8.com/fluency/96/overtime.png" alt="">
+                <div class="card-title">Office Appointments</div>
+                <div class="card-desc">Schedule visits to local SDM and Tehsildar offices for document verification.</div>
+            </div>
+
+            <!-- TRAP: Mouse-only div -->
+            <div class="service-card trap-only" onclick="goTo('track')">
+                <img src="https://img.icons8.com/fluency/96/order-history.png" alt="">
+                <div class="card-title">Track Application</div>
+                <div class="card-desc">Check real-time status of your submitted certificates and grievances.</div>
+            </div>
+            <!-- FIXED -->
+            <div class="service-card fixed-only" onclick="goTo('track')" tabindex="0" role="button" aria-label="Track Application Status" onkeypress="if(event.key==='Enter') goTo('track')">
+                <img src="https://img.icons8.com/fluency/96/order-history.png" alt="">
+                <div class="card-title">Track Application</div>
+                <div class="card-desc">Check real-time status of your submitted certificates and grievances.</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--border);">
+            <button onclick="showNoticePopup()" class="nav-btn secondary">View Public Announcements</button>
+        </div>
+    </div>
+
+    <!-- Notice Popup -->
+    <div id="notice-overlay" class="overlay">
+        <div class="popup-content">
+            <h2 class="fixed-only">Important Notice</h2>
+            <div class="fake-heading trap-only">Important Notice</div>
+            <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin-bottom: 20px; color: #991b1b; font-size: 15px;">
+                <strong>Scheduled Downtime:</strong> The e-District portal database will undergo maintenance this Sunday from 2:00 AM to 6:00 AM IST. Application submissions will be paused.
+            </div>
+            
+            <!-- TRAP: Mouse-only div close button. Keyboard users are trapped because they can't press it. -->
+            <div class="close-popup trap-only" onclick="closePopup()">×</div>
+            <!-- FIXED: Real button -->
+            <button class="close-popup fixed-only" aria-label="Close Notice" onclick="closePopup()">×</button>
+            
+            <!-- TRAP: Invisible input that aggressively steals focus -->
+            <input type="text" class="trap-only" style="opacity: 0; position: absolute;" onfocus="document.querySelector('.popup-content').focus()">
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-text">© 2026 Government of DemoState. All Rights Reserved.</div>
+        <div>
+            <!-- TRAP: Icon image with no alt, wrapped in a button -->
+            <button class="icon-btn trap-only" onclick="goTo('help')" style="padding: 6px 10px;">
+                <img src="https://img.icons8.com/ios-glyphs/24/000000/help.png" alt="">
+            </button>
+            <!-- FIXED: Text-based named button -->
+            <button class="nav-btn fixed-only" onclick="goTo('help')" style="padding: 8px 16px;">Help & Accessibility</button>
+        </div>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>

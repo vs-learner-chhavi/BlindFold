@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Help & Report - Demo Seva</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div>Government of DemoState | Ministry of Electronic Services</div>
+        <div class="top-bar-right">
+            <span onclick="skipToMain()" onkeypress="if(event.key==='Enter') skipToMain()" tabindex="0" style="cursor: pointer;">Skip to Main Content</span>
+            <span>A- | A | A+</span>
+        </div>
+    </div>
+
+    <header class="header-main">
+        <div class="logo-area" onclick="goTo('index')">
+            <img src="https://dummyimage.com/60x60/ffffff/0f4a8a.png&text=DS" alt="Home" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="logo-text"><h2>Demo Seva Portal</h2></div>
+        </div>
+    </header>
+
+    <div class="container" id="main-content" tabindex="-1" style="max-width: 600px;">
+        <h2 class="fixed-only">Help & Accessibility Reporting</h2>
+        <div class="fake-heading trap-only">Help & Accessibility Reporting</div>
+        
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+            <h3 style="color: #166534; font-size: 16px; margin-bottom: 10px;">Official Support Contact</h3>
+            <p style="color: #15803d; font-weight: 500;">help[at]demoseva[dot]in</p>
+        </div>
+
+        <h3 style="font-size: 18px; margin-bottom: 15px;">Send Accessibility Audit</h3>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Use this form to trigger a BlindFold AI audit report for the current session data.</p>
+        
+        <div class="form-group">
+            <label class="fixed-only" for="report-email">Recipient Email Address</label>
+            <span class="trap-only">Recipient Email Address</span>
+            <input type="email" id="report-email" placeholder="name@example.com" style="max-width: 100%;">
+            <button class="nav-btn" style="margin-top:15px; width: 100%;" onclick="alert('Audit report queued. Checking database...');">Transmit Report</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

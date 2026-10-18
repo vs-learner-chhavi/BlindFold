@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Apply - Demo Seva</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div>Government of DemoState | Ministry of Electronic Services</div>
+        <div class="top-bar-right">
+            <span onclick="skipToMain()" onkeypress="if(event.key==='Enter') skipToMain()" tabindex="0" style="cursor: pointer;">Skip to Main Content</span>
+            <span>A- | A | A+</span>
+        </div>
+    </div>
+
+    <header class="header-main">
+        <div class="logo-area" onclick="goTo('index')">
+            <img src="https://dummyimage.com/60x60/ffffff/0f4a8a.png&text=DS" alt="Home" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="logo-text"><h2>Demo Seva Portal</h2></div>
+        </div>
+    </header>
+
+    <div class="container" id="main-content" tabindex="-1">
+        <div style="margin-bottom: 40px; text-align: center;">
+            <h2 class="fixed-only" style="margin-bottom: 10px; font-size: 28px;">State Merit Scholarship Application</h2>
+            <div class="fake-heading trap-only" style="margin-bottom: 10px; font-size: 28px; border: none;">State Merit Scholarship Application</div>
+            <p style="color: var(--text-muted);">Academic Year 2026-2027</p>
+        </div>
+        
+        <div class="wizard-progress">
+            <div class="wizard-step-indicator active-ind">Applicant<br>Identity</div>
+            <div class="wizard-step-indicator">Contact &<br>Banking</div>
+            <div class="wizard-step-indicator">Supporting<br>Documents</div>
+            <div class="wizard-step-indicator">Review &<br>Submit</div>
+        </div>
+        
+        <div id="step-1" class="wizard-step active">
+            <div style="background: var(--bg-light); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px;">
+                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">1. Primary Identity Details</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="fixed-only" for="app-name">Full Legal Name</label>
+                        <span class="trap-only">Full Legal Name</span>
+                        <input type="text" id="app-name" placeholder="As printed on 10th Marksheet">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="fixed-only" for="app-aadhaar">Identification Number (UID)</label>
+                        <span class="trap-only">Identification Number (UID)</span>
+                        <input type="text" id="app-aadhaar" placeholder="12-digit UID format">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: right; padding-top: 20px;">
+                <button class="nav-btn trap-only" onclick="nextStep(2)">›</button>
+                <button class="nav-btn fixed-only" onclick="nextStep(2)">Save & Continue</button>
+            </div>
+        </div>
+
+        <div id="step-2" class="wizard-step">
+            <div style="background: var(--bg-light); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px;">
+                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">2. Communication & Financial Routing</h3>
+                <div class="form-group">
+                    <label class="fixed-only" for="app-address">Permanent Residential Address</label>
+                    <span class="trap-only">Permanent Residential Address</span>
+                    <input type="text" id="app-address" style="max-width: 100%;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="fixed-only" for="app-bank">Bank Account Number</label>
+                        <span class="trap-only">Bank Account Number</span>
+                        <input type="text" id="app-bank" placeholder="Account Number">
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 20px;">
+                <button class="nav-btn secondary fixed-only" onclick="nextStep(1)">Back</button>
+                <div style="margin-left: auto;">
+                    <button class="nav-btn fixed-only" onclick="nextStep(3)">Save & Continue</button>
+                    <button class="nav-btn trap-only" onclick="nextStep(3)">›</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="step-3" class="wizard-step">
+            <div style="background: var(--bg-light); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px;">
+                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">3. Digital Enclosures</h3>
+                <div class="form-group" style="margin: 0;">
+                    <label for="app-file" class="fixed-only">Upload Valid Income Certificate (PDF only, Max 2MB)</label>
+                    <span class="trap-only">Upload Valid Income Certificate (PDF only, Max 2MB)</span>
+                    <input type="file" id="app-file" style="padding: 40px; background: white; border: 2px dashed #cbd5e1; text-align: center; width: 100%; max-width: 100%; cursor: pointer;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 20px;">
+                <button class="nav-btn secondary fixed-only" onclick="nextStep(2)">Back</button>
+                <div style="margin-left: auto;">
+                    <button class="nav-btn fixed-only" onclick="nextStep(4)">Save & Continue</button>
+                    <button class="nav-btn trap-only" onclick="nextStep(4)">›</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="step-4" class="wizard-step">
+            <div style="background: #f8fafc; padding: 30px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">4. Security Verification</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">By submitting this form, you declare that all provided information is true to the best of your knowledge.</p>
+                
+                <div class="form-group" style="margin: 0; background: white; padding: 20px; border-radius: 6px; border: 1px solid var(--border);">
+                    <label class="fixed-only" for="captcha-input">Enter Verification Code</label>
+                    <span class="trap-only">Enter Verification Code</span>
+                    <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px;">
+                        <img src="https://dummyimage.com/160x60/f1f5f9/0f4a8a.png&text=QW8X9" alt="Security Captcha" class="fixed-only" style="border-radius: 4px;">
+                        <img src="https://dummyimage.com/160x60/f1f5f9/0f4a8a.png&text=QW8X9" alt="" class="trap-only" style="border-radius: 4px;">
+                        <div class="fixed-only"><a href="#" style="color: var(--gov-blue); font-weight: 600; text-decoration: none;">🔊 Play Audio Code</a></div>
+                    </div>
+                    <input type="text" id="captcha-input" placeholder="Type the characters shown above" style="max-width: 300px;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 20px;">
+                <button class="nav-btn secondary fixed-only" onclick="nextStep(3)">Back</button>
+                <div style="margin-left: auto;">
+                    <button class="nav-btn" onclick="submitApplication()" style="background: var(--gov-green); font-size: 16px; padding: 14px 30px; box-shadow: 0 4px 6px rgba(19, 136, 8, 0.2);">Securely Submit Application</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

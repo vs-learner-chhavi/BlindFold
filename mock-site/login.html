@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Citizen Login - Demo Seva</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div>Government of DemoState | Ministry of Electronic Services</div>
+        <div class="top-bar-right">
+            <span onclick="skipToMain()" onkeypress="if(event.key==='Enter') skipToMain()" tabindex="0" style="cursor: pointer;">Skip to Main Content</span>
+            <span>A- | A | A+</span>
+        </div>
+    </div>
+
+    <header class="header-main">
+        <div class="logo-area" onclick="goTo('index')">
+            <img src="https://dummyimage.com/60x60/ffffff/0f4a8a.png&text=DS" alt="Home" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="logo-text"><h2>Demo Seva Portal</h2></div>
+        </div>
+    </header>
+
+    <div class="container" id="main-content" tabindex="-1" style="max-width: 500px; text-align: center; padding: 40px;">
+        <h2 class="fixed-only" style="margin-bottom: 30px;">Citizen Portal Login</h2>
+        <div class="fake-heading trap-only" style="margin-bottom: 30px;">Citizen Portal Login</div>
+
+        <div class="form-group" style="text-align: left;">
+            <span class="trap-only">Registered Mobile Number</span>
+            <label class="fixed-only" for="login-mobile">Registered Mobile Number</label>
+            <input type="text" id="login-mobile" placeholder="10-digit number" style="max-width: 100%;">
+            <div id="mobile-error" class="error-msg trap-only" style="display:none; color:#dc2626; margin-top: 8px; font-size: 14px;">Invalid mobile number format</div>
+            <div id="mobile-error-fixed" class="error-msg fixed-only" role="alert" style="display:none; color:#dc2626; margin-top: 8px; font-size: 14px;">Invalid mobile number format</div>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+            <span class="trap-only">Account Password</span>
+            <label class="fixed-only" for="login-password">Account Password</label>
+            <input type="password" id="login-password" style="max-width: 100%;">
+        </div>
+        <button class="nav-btn" onclick="mockLogin()" style="width: 100%; font-size: 16px; padding: 14px;">Secure Login</button>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

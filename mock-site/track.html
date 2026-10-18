@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Track Status - Demo Seva</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div>Government of DemoState | Ministry of Electronic Services</div>
+        <div class="top-bar-right">
+            <span onclick="skipToMain()" onkeypress="if(event.key==='Enter') skipToMain()" tabindex="0" style="cursor: pointer;">Skip to Main Content</span>
+            <span>A- | A | A+</span>
+        </div>
+    </div>
+
+    <header class="header-main">
+        <div class="logo-area" onclick="goTo('index')">
+            <img src="https://dummyimage.com/60x60/ffffff/0f4a8a.png&text=DS" alt="Home" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="logo-text"><h2>Demo Seva Portal</h2></div>
+        </div>
+    </header>
+
+    <div class="container" id="main-content" tabindex="-1" style="max-width: 600px; text-align: center;">
+        <h2 class="fixed-only">Track Application Status</h2>
+        <div class="fake-heading trap-only">Track Application Status</div>
+        
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Enter your unique 14-digit application reference number to check the current processing stage of your request.</p>
+
+        <div class="form-group" style="text-align: left;">
+            <input type="text" id="track-ref" class="trap-only" placeholder="Reference Number (No Label)" style="max-width: 100%;">
+            <label class="fixed-only" for="track-ref-fixed">Reference Number</label>
+            <input type="text" id="track-ref-fixed" class="fixed-only" placeholder="e.g. SCH-2026-987654" style="max-width: 100%;">
+        </div>
+        <button class="nav-btn" style="width: 100%;">Search Database</button>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
