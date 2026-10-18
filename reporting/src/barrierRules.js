@@ -37,6 +37,16 @@ const BARRIER_TYPES = {
     fix: 'Add alt text to the image describing the destination, e.g. alt="Book tickets".',
     defaultSeverity: 'major',
   },
+  inaccessible_date_picker: {
+    title: "Date picker can't be used with a screen reader",
+    whatUserHears: '"Edit text, read only", and the calendar dates are never announced',
+    whyItMatters: "The user can't type a date and can't reach the calendar, so the whole task (booking, form) stops here.",
+    wcag: ['2.1.1 Keyboard (Level A)', '4.1.2 Name, Role, Value (Level A)'],
+    fix: 'Let users type the date (remove readonly; use <input type="date"> or a text field with a hint like DD/MM/YYYY), '
+      + 'or build the calendar as an accessible grid: every day a focusable button named like "15 November 2026", '
+      + 'arrow keys move between days, Enter selects.',
+    defaultSeverity: 'blocker',
+  },
   mouse_only_widget: {
     title: "Control can't be used with a keyboard",
     whatUserHears: 'The control is announced, but keyboard keys do nothing',
