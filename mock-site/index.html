@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopZen.in: Shop Online for Mobiles, Books, Watches, Shoes and More</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- MAIN CONTENT WRAPPER: Hidden when login is active to prevent screen reader bleed -->
+    <div id="main-wrap">
+        
+        <!-- Top Navigation -->
+        <header class="nav-main">
+            <div class="nav-left">
+                <div class="nav-logo">
+                    <span class="logo-text">ShopZen<span class="logo-in">.in</span></span>
+                </div>
+                <div class="nav-location">
+                    <div class="loc-icon">📍</div>
+                    <div class="loc-text">
+                        <span class="loc-line1">Delivering to Dwarka</span>
+                        <span class="loc-line2">Update location</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-fill">
+                <div class="nav-search">
+                    <div class="search-dropdown">All</div>
+                    <!-- TRAP: Missing label and aria-label -->
+                    <input type="text" class="search-input" placeholder="Search ShopZen.in">
+                    <!-- TRAP: Missing accessible name for screen readers -->
+                    <button class="search-icon">🔍</button>
+                </div>
+            </div>
+
+            <div class="nav-right">
+                <div class="nav-item" onclick="handleAuthClick('account')">
+                    <span class="nav-line1">Hello, sign in</span>
+                    <span class="nav-line2">Account & Lists</span>
+                </div>
+                <div class="nav-item" onclick="handleAuthClick('orders')">
+                    <span class="nav-line1">Returns</span>
+                    <span class="nav-line2">& Orders</span>
+                </div>
+                <div class="nav-cart" onclick="handleAuthClick('cart')">
+                    <span class="cart-icon">🛒</span>
+                    <span id="cart-count" class="cart-count">0</span>
+                    <span class="nav-line2">Cart</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sub Navigation -->
+        <nav class="nav-belt">
+            <div class="menu-icon" onclick="toggleSidebar()">☰ All</div>
+            <a href="#">Fresh</a>
+            <a href="#">MaxiTV</a>
+            <a href="#">Sell</a>
+            <a href="#">Best Sellers</a>
+            <a href="#">Mobiles</a>
+            <a href="#">Today's Deals</a>
+            <a href="#">Customer Service</a>
+            <a href="#">Electronics</a>
+        </nav>
+
+        <!-- Sidebar Overlay (Hidden by default) -->
+        <div id="sidebar-overlay" class="overlay" onclick="toggleSidebar()"></div>
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <span>Hello, sign in</span>
+                <span class="close-btn" onclick="toggleSidebar()">✕</span>
+            </div>
+            <div class="sidebar-content">
+                <h3>Trending</h3>
+                <a href="#">Best Sellers</a>
+                <a href="#">New Releases</a>
+                <a href="#">Movers and Shakers</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-body">
+            <!-- Hero Carousel -->
+            <div class="hero-slider">
+                <!-- TRAP: Meaningful image missing alt text -->
+                <img id="hero-img" src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1500&q=80">
+                <div class="slider-btn left" onclick="slideHero(-1)">❮</div>
+                <div class="slider-btn right" onclick="slideHero(1)">❯</div>
+            </div>
+
+            <!-- 4-Quadrant Grids -->
+            <div class="card-grid">
+                
+                <div class="quad-card">
+                    <h2>Up to 70% off | Clearance store</h2>
+                    <!-- TRAP: Images missing alt text -->
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80">
+                    <a href="#">See more</a>
+                </div>
+
+                <div class="quad-card">
+                    <h2>Upgrade your home | Brands & more</h2>
+                    <div class="quad-img-grid">
+                        <div><img src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=150&q=80"><span>Smart TVs</span></div>
+                        <div><img src="https://images.unsplash.com/photo-1585336261022-680e295ce3fe?auto=format&fit=crop&w=150&q=80"><span>Appliances</span></div>
+                        <div><img src="https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?auto=format&fit=crop&w=150&q=80"><span>Furniture</span></div>
+                        <div><img src="https://images.unsplash.com/photo-1583847268964-b28ce8f30f65?auto=format&fit=crop&w=150&q=80"><span>Kitchen</span></div>
+                    </div>
+                    <a href="#">Shop now</a>
+                </div>
+
+                <div class="quad-card">
+                    <h2>Starting ₹40000 | Laptops</h2>
+                    <img src="https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=300&q=80">
+                    <a href="#">See all offers</a>
+                    <button onclick="addToCart()" style="background: #ffd814; border: 1px solid #fcd200; border-radius: 50px; padding: 8px 15px; cursor: pointer; margin-top: 10px;">Add to Cart</button>
+                </div>
+
+                <div class="quad-card form-card">
+                    <h2>Sign in for your best experience</h2>
+                    <!-- TRAP: Div styled as a button. Keyboard users cannot tab to it or press enter. -->
+                    <div class="fake-btn" onclick="showLogin()" aria-hidden="true">Sign in securely</div>
+                </div>
+
+            </div>
+
+            <!-- Horizontal Scroller -->
+            <div class="horizontal-scroll">
+                <h2>Today's Deals <span><a href="#">See all deals</a></span></h2>
+                <div class="deal-list">
+                    <div class="deal-item">
+                        <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=200&q=80">
+                        <div class="deal-badge">Up to 25% off</div>
+                        <!-- TRAP: Poor color contrast -->
+                        <div class="deal-text">Deal of the Day</div>
+                    </div>
+                    <div class="deal-item">
+                        <img src="https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=200&q=80">
+                        <div class="deal-badge">Up to 40% off</div>
+                        <div class="deal-text">Limited time deal</div>
+                    </div>
+                    <div class="deal-item">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80">
+                        <div class="deal-badge">Up to 60% off</div>
+                        <div class="deal-text">Deal of the Day</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <div class="back-to-top" onclick="window.scrollTo(0,0)">Back to top</div>
+            <div class="footer-links">
+                <div class="link-column">
+                    <h3>Get to Know Us</h3>
+                    <a href="#">About Us</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Press Releases</a>
+                </div>
+                <div class="link-column">
+                    <h3>Connect with Us</h3>
+                    <a href="#">Facebook</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Instagram</a>
+                </div>
+                <div class="link-column">
+                    <h3>Make Money with Us</h3>
+                    <a href="#">Sell on ShopZen</a>
+                    <a href="#">Protect and Build Your Brand</a>
+                    <a href="#">ShopZen Global Selling</a>
+                </div>
+                <div class="link-column">
+                    <h3>Let Us Help You</h3>
+                    <a href="#">COVID-19 and ShopZen</a>
+                    <a href="#">Your Account</a>
+                    <a href="#">Returns Centre</a>
+                </div>
+            </div>
+        </footer>
+    
+    </div> <!-- END MAIN WRAPPER -->
+
+    <!-- Full Screen Login Modal -->
+    <div id="login-modal" class="login-modal">
+        <div class="back-btn" onclick="closeLogin()">❮ Back</div>
+        <div class="login-container">
+            <div class="login-logo" onclick="closeLogin()">Shop<span>Zen</span></div>
+            
+            <div class="login-box">
+                <h1>Sign in</h1>
+
+                <!-- TRAP 1: Missing <label> tag. Screen reader will say "Edit text, blank" instead of "Email" -->
+                <div class="form-group">
+                    <span class="fake-label">Email or mobile phone number</span>
+                    <input type="text" class="login-input" />
+                </div>
+
+                <!-- TRAP 2: Missing <label> tag for highly sensitive password field -->
+                <div class="form-group">
+                    <span class="fake-label">Password</span>
+                    <input type="password" class="login-input" />
+                </div>
+
+                <!-- TRAP 3: Image CAPTCHA missing alt="" text with a working dummy image URL -->
+                <div class="form-group">
+                    <span class="fake-label">Enter the characters below</span>
+                    <img src="https://dummyimage.com/150x50/f0f0f0/000000.png&text=X9B2mQ" style="width: 150px; border: 1px solid #ccc; margin-bottom: 5px;">
+                    <input type="text" class="login-input" />
+                </div>
+
+                <!-- TRAP 4: A <div> styled as a button. Keyboard users cannot tab to it or press Enter -->
+                <div class="fake-submit-btn" onclick="performLogin()">Continue</div>
+
+                <div class="login-terms">
+                    By continuing, you agree to ShopZen's <a href="#">Conditions of Use</a> and <a href="#">Privacy Notice</a>.
+                </div>
+            </div>
+
+            <div class="new-to-shopzen">
+                <div class="divider"><span>New to ShopZen?</span></div>
+                <!-- TRAP 5: Another inaccessible <div> button -->
+                <div class="fake-create-btn">Create your ShopZen account</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
