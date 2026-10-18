@@ -57,5 +57,5 @@ test('same element on different URLs is the same problem', () => {
 
 test('markdown output', () => {
   const md = toMarkdown(generateReport(SAMPLE));
-  assert.ok(md.includes('this stopped the user') && md.includes('Suggested fix'));
+  assert.ok(md.includes('the user got stuck here') && md.includes('Suggested fix'));
 });

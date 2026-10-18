@@ -78,12 +78,12 @@ const BARRIER_TYPES = {
     defaultSeverity: 'minor',
   },
   unverified_user_report: {
-    title: 'User got stuck here (needs manual review)',
+    title: 'Help requested here (needs manual review)',
     whatUserHears: 'See the screen reader announcement recorded with this report',
-    whyItMatters: "A real user could not continue at this element, but our automatic checks couldn't confirm why.",
+    whyItMatters: "A user asked for help here, but our automatic checks couldn't confirm why.",
     wcag: [],
     fix: 'Test this element with a screen reader (NVDA, VoiceOver) and the keyboard only.',
-    defaultSeverity: 'major',
+    defaultSeverity: 'minor',
   },
 };
 

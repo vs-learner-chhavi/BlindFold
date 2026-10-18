@@ -1,5 +1,23 @@
 require("./env").loadEnv(); // must run before agent.js reads process.env
 
+const reporting = require("../reporting");
+const { toIncident } = require("./incident");
+const delivery = new reporting.DeliveryService();   // check this export name
+const contactsCache = {};
+
+async function reportIncident(session) {
+  if (!session.request.reportingEnabled || session.reported) return;
+  session.reported = true;
+  try {
+    const incident = toIncident(session);
+    const host = new URL(incident.page_url).hostname;
+    if (!contactsCache[host]) contactsCache[host] = await reporting.findContacts(incident.page_url);
+    const report = reporting.generateReport(incident);
+    delivery.ingest(report, incident.user_ref, contactsCache[host]);
+    console.log("Report queued for", host);
+  } catch (e) { console.warn("report error:", e.message); }
+}
+setInterval(() => delivery.run().catch(console.error), 3600 * 1000);
 const agent = require("./agent");
 const planner = require("./planner");
 const gemini = require("./gemini");
@@ -15,7 +33,7 @@ const sessions = {}; // in-memory for now
 
 function cleanRequest(body) {
   const safeValues = (body.safeValues || []).filter((v) => !SENSITIVE_FIELD.test(v.field || ""));
-  return redact({ ...body, safeValues });
+  return{ ...redact({ ...body, safeValues, userRef: undefined }),userRef: body.userRef};
 }
 
 // Only the Blindfold extension may talk to this backend. Web pages must not be able to
