@@ -79,7 +79,7 @@ const BARRIER_TYPES = {
   },
   unverified_user_report: {
     title: 'Help requested here (needs manual review)',
-    whatUserHears: 'See the screen reader announcement recorded with this report',
+    whatUserHears: 'Not confirmed. Need a screen reader test',
     whyItMatters: "A user asked for help here, but our automatic checks couldn't confirm why.",
     wcag: [],
     fix: 'Test this element with a screen reader (NVDA, VoiceOver) and the keyboard only.',
