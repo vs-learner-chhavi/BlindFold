@@ -31,6 +31,7 @@ async function sendRescueRequest(snapshot, goal) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  if(res.status===429) throw new Error("LIMIT");
   if (!res.ok) throw new Error("Backend returned " + res.status);
   return res.json();
 }

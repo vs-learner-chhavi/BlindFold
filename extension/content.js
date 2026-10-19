@@ -13,6 +13,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   if (message.type === "SESSION_STARTED") startAgentLoop(message.session);
   if (message.type === "SESSION_FAILED") announce("I couldn't reach the server. Nothing was submitted.");
+  if (message.type === "SESSION_LIMIT") announce("You have used your free rescues for this month. Page descriptions still work.");
   return true;
 });
 

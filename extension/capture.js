@@ -1,10 +1,10 @@
 function accessibleName(el) {
+  if (!el) return "";
   if (el.matches && el.matches("[role=dialog], dialog, [role=main], main, form")) {
     const by = el.getAttribute("aria-labelledby");
     const t = el.getAttribute("aria-label") || (by && (document.getElementById(by) || {}).innerText) || "";
     return t.trim().slice(0, 100);
   }
-  if (!el) return "";
   const label =
     el.getAttribute("aria-label") ||
     (el.labels && el.labels[0] && el.labels[0].innerText) ||
@@ -33,6 +33,7 @@ function describeElement(el) {
 function getSafeValues() {
   const out = [];
   document.querySelectorAll("input, select, textarea").forEach((el) => {
+    if (el.closest("#blindfold-dialog")) return;
     if (isSensitiveField(el)) return;
     const value = (el.value || "").trim();
     if (!value) return;
@@ -54,17 +55,19 @@ function cleanUrl(href) {
 }
 
 function buildSnapshot() {
-  const nearbyTree = buildNearbyTree();
+  // Always scan the whole screen too, so mouse-only items (calendar days, time slots) are included.
+  const pageScan = scanPageProblems();
+  const nearbyTree = pageScan.items.concat(buildNearbyTree()).slice(0, 45);
   const f = describeElement(document.activeElement);
   return {
     pageUrl: cleanUrl(location.href),
     pageTitle: document.title,
     headings: Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,h6,[role=heading]"))
-    .slice(0, 20).map((h) => ({ id: elId(h), role: "heading", name: "section heading" })),
-    focusedElement: describeElement(document.activeElement),
+      .slice(0, 20).map((h) => ({ id: elId(h), role: "heading", name: "section heading" })),
+    focusedElement: f,
     nearbyTree,
     safeValues: getSafeValues(),
-    situation: describeSituation(nearbyTree),
+    situation: describeSituation(nearbyTree, pageScan),
     capturedAt: new Date().toISOString(),
     focusHistory: focusHistory.slice(),
     announcement: f ? (f.name ? f.role + ", " + f.name : f.role) : "",

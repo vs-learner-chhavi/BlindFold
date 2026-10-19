@@ -26,6 +26,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     })
     .catch((e) => {
       console.warn("[Blindfold] Backend not reachable:", e.message);
+      if (e && e.message === "LIMIT") {
+        if (tabId) chrome.tabs.sendMessage(tabId, { type: "SESSION_LIMIT" });
+        return;
+      }
       if (tabId) chrome.tabs.sendMessage(tabId, { type: "SESSION_FAILED" });
     });
 });
