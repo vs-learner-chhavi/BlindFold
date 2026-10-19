@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Apply - Demo Seva</title><link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Apply - Demo Seva</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="top-bar">
@@ -33,6 +35,7 @@
             <div class="wizard-step-indicator">Review &<br>Submit</div>
         </div>
         
+        <!-- STEP 1 -->
         <div id="step-1" class="wizard-step active">
             <div style="background: var(--bg-light); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px;">
                 <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">1. Primary Identity Details</h3>
@@ -56,6 +59,7 @@
             </div>
         </div>
 
+        <!-- STEP 2 -->
         <div id="step-2" class="wizard-step">
             <div style="background: var(--bg-light); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px;">
                 <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">2. Communication & Financial Routing</h3>
@@ -81,6 +85,7 @@
             </div>
         </div>
 
+        <!-- STEP 3 -->
         <div id="step-3" class="wizard-step">
             <div style="background: var(--bg-light); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px;">
                 <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">3. Digital Enclosures</h3>
@@ -99,22 +104,50 @@
             </div>
         </div>
 
+        <!-- STEP 4: REVIEW & CONFIRMATION -->
         <div id="step-4" class="wizard-step">
             <div style="background: #f8fafc; padding: 30px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
-                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">4. Security Verification</h3>
-                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">By submitting this form, you declare that all provided information is true to the best of your knowledge.</p>
+                <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--gov-blue);">4. Review Entered Details</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Verify your application information before final submission to the state portal.</p>
                 
-                <div class="form-group" style="margin: 0; background: white; padding: 20px; border-radius: 6px; border: 1px solid var(--border);">
-                    <label class="fixed-only" for="captcha-input">Enter Verification Code</label>
-                    <span class="trap-only">Enter Verification Code</span>
-                    <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px;">
-                        <img src="https://dummyimage.com/160x60/f1f5f9/0f4a8a.png&text=QW8X9" alt="Security Captcha" class="fixed-only" style="border-radius: 4px;">
-                        <img src="https://dummyimage.com/160x60/f1f5f9/0f4a8a.png&text=QW8X9" alt="" class="trap-only" style="border-radius: 4px;">
-                        <div class="fixed-only"><a href="#" style="color: var(--gov-blue); font-weight: 600; text-decoration: none;">🔊 Play Audio Code</a></div>
+                <div style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px;">
+                        <div>
+                            <span style="font-weight: 600; color: var(--text-muted); display: block;">Applicant Name:</span>
+                            <span id="rev-name" style="font-weight: 600; color: var(--text-dark);">-</span>
+                        </div>
+                        <div>
+                            <span style="font-weight: 600; color: var(--text-muted); display: block;">UID Number:</span>
+                            <span id="rev-aadhaar" style="font-weight: 600; color: var(--text-dark);">-</span>
+                        </div>
+                        <div>
+                            <span style="font-weight: 600; color: var(--text-muted); display: block;">Address:</span>
+                            <span id="rev-address" style="font-weight: 600; color: var(--text-dark);">-</span>
+                        </div>
+                        <div>
+                            <span style="font-weight: 600; color: var(--text-muted); display: block;">Bank Account:</span>
+                            <span id="rev-bank" style="font-weight: 600; color: var(--text-dark);">-</span>
+                        </div>
                     </div>
-                    <input type="text" id="captcha-input" placeholder="Type the characters shown above" style="max-width: 300px;">
+                </div>
+
+                <!-- TRAP: Mouse-only styled div checkbox -->
+                <div class="trap-only" style="margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="toggleTrapDeclaration(this)">
+                        <div id="fake-checkbox" style="width: 20px; height: 20px; border: 2px solid #94a3b8; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #0f4a8a; user-select: none;"></div>
+                        <span style="font-size: 14px; font-weight: 500;">I confirm that the details reviewed above are accurate and authentic.</span>
+                    </div>
+                </div>
+
+                <!-- FIXED: Accessible native checkbox with label -->
+                <div class="fixed-only" style="margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="real-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="real-checkbox" style="font-size: 14px; font-weight: 500; cursor: pointer; margin: 0;">I confirm that the details reviewed above are accurate and authentic.</label>
+                    </div>
                 </div>
             </div>
+
             <div style="display: flex; justify-content: space-between; padding-top: 20px;">
                 <button class="nav-btn secondary fixed-only" onclick="nextStep(3)">Back</button>
                 <div style="margin-left: auto;">

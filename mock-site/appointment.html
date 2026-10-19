@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Book Appointment - Demo Seva</title><link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Book Appointment - Demo Seva</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="top-bar">
@@ -24,15 +26,44 @@
         <div class="fake-heading trap-only">Schedule Office Visit</div>
         
         <div style="background: var(--bg-light); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
-            <p style="color: var(--text-muted); font-weight: 500; margin-bottom: 15px;">Available slots for: <strong>Friday, District SDM Office</strong></p>
-            <div class="slots-grid">
-                <div class="time-slot trap-only" onclick="selectSlot(this)">10:00 AM</div>
-                <div class="time-slot trap-only" onclick="selectSlot(this)">11:30 AM</div>
-                <div class="time-slot trap-only" onclick="selectSlot(this)">02:00 PM</div>
+            
+            <!-- TRAP: Custom Div-Based Calendar -->
+            <div class="form-group trap-only" style="margin-bottom: 20px;">
+                <span style="font-weight: 600; display: block; margin-bottom: 8px; color: var(--gov-blue);">1. Select Date</span>
                 
-                <button class="time-slot fixed-only" onclick="selectSlot(this)">10:00 AM</button>
-                <button class="time-slot fixed-only" onclick="selectSlot(this)">11:30 AM</button>
-                <button class="time-slot fixed-only" onclick="selectSlot(this)">02:00 PM</button>
+                <!-- Fake Input Display -->
+                <div id="fake-date-display" style="border: 1px solid var(--border); padding: 14px 16px; border-radius: 8px; background: white; cursor: pointer; color: var(--text-muted);" onclick="document.getElementById('fake-calendar').style.display='block'">
+                    Click to choose a date...
+                </div>
+                
+                <!-- Fake Calendar Dropdown -->
+                <div id="fake-calendar" style="display: none; margin-top: 10px; background: white; padding: 15px; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-md); max-height: 220px; overflow-y: auto;">
+                    <div id="fake-calendar-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                        <!-- JavaScript will automatically populate the next 30 days here as inaccessible div tags -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- FIXED: Accessible Native Date Input -->
+            <div class="form-group fixed-only" style="margin-bottom: 20px;">
+                <label for="appointment-date" style="font-weight: 600; display: block; margin-bottom: 8px; color: var(--gov-blue);">1. Select Date</label>
+                <input type="date" id="appointment-date" style="width: 100%; max-width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; background: white;">
+            </div>
+
+            <!-- TIME SLOTS -->
+            <div style="border-top: 1px solid var(--border); padding-top: 20px;">
+                <span class="trap-only" style="font-weight: 600; color: var(--gov-blue); margin-bottom: 15px; display: block;">2. Select Time</span>
+                <label class="fixed-only" style="font-weight: 600; color: var(--gov-blue); margin-bottom: 15px; display: block;">2. Select Time</label>
+                
+                <div class="slots-grid">
+                    <div class="time-slot trap-only" onclick="selectSlot(this)">10:00 AM</div>
+                    <div class="time-slot trap-only" onclick="selectSlot(this)">11:30 AM</div>
+                    <div class="time-slot trap-only" onclick="selectSlot(this)">02:00 PM</div>
+                    
+                    <button class="time-slot fixed-only" onclick="selectSlot(this)">10:00 AM</button>
+                    <button class="time-slot fixed-only" onclick="selectSlot(this)">11:30 AM</button>
+                    <button class="time-slot fixed-only" onclick="selectSlot(this)">02:00 PM</button>
+                </div>
             </div>
         </div>
         
