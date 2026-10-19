@@ -139,52 +139,52 @@ function createServer() {
         return gemini.check().then((g) => reply(200, { backend: "ok", gemini: g }));
       }
 
-      // POST /help -> create a rescue session and start the TinyFish inspection
+      // POST /help -> count the rescue, then create a session
       if (req.method === "POST" && req.url === "/help") {
         if (!body.pageUrl || !body.userGoal) return reply(400, { error: "pageUrl and userGoal required" });
-        const sessionId = crypto.randomUUID();
-        sessions[sessionId] = {
-          id: "sessionId",
-          status: "in_progress",
-          request: cleanRequest(body),
-          confirmed: null,
-          result: null,
-          summary: "Looking at the page.",
-          runId: null,
-          error: null,
-          createdAt: new Date().toISOString(),
-          // agent loop state
-          step: 0,
-          replies: [],
-          history: [],
-          pending: null,
-          completed: false,
-          reported: false,
-        };
-        const session = sessions[sessionId];
-        let host = "";
-        try { host = new URL(body.pageUrl).hostname; } catch {}
-        db.saveSession(sessionId, host).catch((e) => console.warn("db session:", e.message));
+        const limit = Number(process.env.FREE_RESCUES_PER_MONTH) || 15;
+        return db.useRescue(body.userRef, limit).then((u) => {
+          if (!u.allowed) return reply(429, { error: "limit", used: u.used, limit: u.limit });
 
-        // TEMPORARY TEST LINE: uncomment to prove the report pipeline before the full rescue works.
-        // Remove it afterwards, or the report is made before the rescue finishes.
-        // reportIncident(session, "test at /help");
+          const sessionId = crypto.randomUUID();
+          sessions[sessionId] = {
+            id: sessionId,
+            status: "in_progress",
+            request: cleanRequest(body),
+            confirmed: null,
+            result: null,
+            summary: "Looking at the page.",
+            runId: null,
+            error: null,
+            createdAt: new Date().toISOString(),
+            step: 0,
+            replies: [],
+            history: [],
+            pending: null,
+            completed: false,
+            reported: false,
+          };
+          const session = sessions[sessionId];
 
-        (async () => {
-          try {
-            session.runId = await agent.startRun(session.request);
-            session.status = "in_progress";
-            session.summary = "I've started checking the page.";
-            void processRun(sessionId);
-          } catch (error) {
-            session.status = "failed";
-            session.error = "Unable to start the website check.";
-            session.summary = "I couldn't start the website check. Please try again.";
-            // Log only the error message, never the request, API key, snapshot or page contents.
-            console.error("BlindFold agent start failed:", error.message);
-          }
-        })();
-        return reply(200, { sessionId, status: "in_progress" });
+          let host = "";
+          try { host = new URL(body.pageUrl).hostname; } catch {}
+          db.saveSession(sessionId, host).catch((e) => console.warn("db session:", e.message));
+
+          (async () => {
+            try {
+              session.runId = await agent.startRun(session.request);
+              session.status = "in_progress";
+              session.summary = "I've started checking the page.";
+              void processRun(sessionId);
+            } catch (error) {
+              session.status = "failed";
+              session.error = "Unable to start the website check.";
+              session.summary = "I couldn't start the website check. Please try again.";
+              console.error("BlindFold agent start failed:", error.message);
+            }
+          })();
+          return reply(200, { sessionId, status: "in_progress", rescuesLeft: u.limit - u.used });
+        });
       }
 
       // GET /status/:id
@@ -232,6 +232,16 @@ function createServer() {
           (rows) => reply(200, { problems: rows }),
           () => reply(500, { error: "Tracker unavailable" })
         );
+      }
+
+      if (req.method === "GET" && req.url === "/usage") {
+        if (!process.env.ADMIN_TOKEN || req.headers["x-admin-token"] !== process.env.ADMIN_TOKEN) {
+          return reply(403, { error: "Forbidden" });
+        }
+        return db.usageSummary().then((s) => {
+          const cost = Number(process.env.COST_PER_RESCUE) || 0.02;
+          reply(200, s ? { ...s, estimatedCostUSD: +(s.rescues * cost).toFixed(2) } : { note: "database off" });
+        });
       }
 
       const fixedMatch = req.url.match(/^\/fixed\/([0-9a-f]{12})$/);
