@@ -10,7 +10,7 @@ const types = (incident) => new Set(detectBarriers(incident).map((b) => b.type))
 
 test('detects the expected barriers in the sample', () => {
   const found = types(SAMPLE);
-  for (const t of ['unlabeled_field', 'unlabeled_button', 'image_link_no_text', 'mouse_only_widget',
+  for (const t of ['unlabeled_field', 'unlabeled_button', 'image_link_no_text', 'inaccessible_date_picker',
     'unannounced_error', 'missing_headings']) assert.ok(found.has(t), t);
 });
 
@@ -58,4 +58,31 @@ test('same element on different URLs is the same problem', () => {
 test('markdown output', () => {
   const md = toMarkdown(generateReport(SAMPLE));
   assert.ok(md.includes('the user got stuck here') && md.includes('Suggested fix'));
+});
+
+test('detects an inaccessible calendar (read-only date field, no accessible days)', () => {
+  const incident = { accessibility_tree: [
+    { id: 'h', role: 'heading', name: 'Book' },
+    { id: 'dob', role: 'textbox', name: 'Date of birth', readonly: true }] };
+  assert.ok(types(incident).has('inaccessible_date_picker'));
+});
+
+test('detects a calendar widget even when the field has a label', () => {
+  const incident = { accessibility_tree: [
+    { id: 'h', role: 'heading', name: 'Book' },
+    { id: 'jd', role: 'textbox', name: 'Journey date', html: '<input class="react-datepicker__input">' }] };
+  assert.ok(types(incident).has('inaccessible_date_picker'));
+});
+
+test('an accessible calendar is not reported', () => {
+  const days = Array.from({ length: 10 }, (_, i) => ({ id: `d${i}`, role: 'button', name: `${i + 1} November 2026` }));
+  const incident = { accessibility_tree: [{ id: 'h', role: 'heading', name: 'Book' },
+    { id: 'jd', role: 'textbox', name: 'Journey date', readonly: true }, ...days] };
+  assert.ok(!types(incident).has('inaccessible_date_picker'));
+});
+
+test('the date field where the user got stuck becomes the blocker', () => {
+  const report = generateReport(SAMPLE);
+  const blocker = report.barriers.find((b) => b.blockedTheUser && b.type === 'inaccessible_date_picker');
+  assert.ok(blocker && blocker.severity === 'blocker');
 });

@@ -56,6 +56,53 @@ function makeBarrier(type, node, evidence) {
   };
 }
 
+// ------------------------------------------------------------------ date pickers
+
+const DATE_HINT_RE = /date|dob|birth|calendar|journey|travel|depart|arriv|check-?in|check-?out|datepicker|tarikh/i;
+const DATE_WIDGET_RE = /datepicker|date-picker|calendar|flatpickr|ui-datepicker|react-datepicker|mat-datepicker|pikaday/i;
+const MONTH_RE = /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*/i;
+
+function looksLikeDateField(node) {
+  const text = `${node.name || ''} ${node.id || ''} ${node.placeholder || ''} ${node.html || ''}`;
+  return DATE_HINT_RE.test(text);
+}
+
+/** Does the snapshot contain a calendar a screen reader can actually use?
+ *  (a grid, or several focusable day buttons with proper names like "15 November 2026") */
+function hasAccessibleCalendar(tree) {
+  if (tree.some((n) => ['grid', 'gridcell'].includes((n.role || '').toLowerCase()))) return true;
+  const dayButtons = tree.filter((n) => ['button', 'option', 'link'].includes((n.role || '').toLowerCase())
+    && /\b\d{1,2}\b/.test(nameOf(n)) && MONTH_RE.test(nameOf(n)));
+  return dayButtons.length >= 7;
+}
+
+/** Find date fields the user can't type into and can't pick from a calendar. */
+function detectDatePickers(incident) {
+  const tree = incident.accessibility_tree || [];
+  if (hasAccessibleCalendar(tree)) return [];
+  const found = [];
+  const stuckId = incident.stuck_element && incident.stuck_element.id;
+  for (const node of tree) {
+    const role = (node.role || '').toLowerCase();
+    if (!FIELD_ROLES.has(role) && role !== 'button') continue;
+    const dateLike = looksLikeDateField(node);
+    const readonly = node.readonly === true || /\breadonly\b/i.test(node.html || '');
+    const widget = DATE_WIDGET_RE.test(node.html || '');
+    const stuckHere = stuckId && node.id === stuckId;
+    // A date field the user can't type into, a known calendar widget, or the date field where the user got stuck.
+    if ((FIELD_ROLES.has(role) && dateLike && (readonly || widget || stuckHere)) || (role === 'button' && widget && stuckHere)) {
+      found.push(makeBarrier('inaccessible_date_picker', node,
+        `${readonly ? 'Date field is read-only' : 'Date field'} and no keyboard-accessible calendar was found in the page.`));
+    }
+  }
+  // A calendar widget is on the page but none of its days are exposed to screen readers.
+  if (!found.length && tree.some((n) => DATE_WIDGET_RE.test(n.html || ''))) {
+    found.push(makeBarrier('inaccessible_date_picker', null,
+      'A calendar widget is on the page, but its dates are not exposed to screen readers.'));
+  }
+  return found;
+}
+
 /** True if the last presses of Tab keep cycling through the same few elements. */
 function detectFocusTrap(history = []) {
   if (history.length < 6) return false;
@@ -96,6 +143,14 @@ function detectBarriers(incident) {
       }
     }
   }
+
+  // Date pickers: the specific check replaces the general "mouse-only" one on the same element.
+  const datePickers = detectDatePickers(incident);
+  const pickerIds = new Set(datePickers.map((b) => b.element?.id).filter(Boolean));
+  for (let i = barriers.length - 1; i >= 0; i--) {
+    if (barriers[i].type === 'mouse_only_widget' && pickerIds.has(barriers[i].element?.id)) barriers.splice(i, 1);
+  }
+  barriers.push(...datePickers);
 
   const focus = incident.focus_history || [];
   if (detectFocusTrap(focus)) {
@@ -177,8 +232,12 @@ function generateReport(incident) {
 
   const barriers = markBlocking(detectBarriers(incident), incident);
   for (const b of barriers) b.fingerprint = fingerprint(domain, path, b);
+  // Most serious first; among equals, the more specific problem first (it explains the stuck point best).
+  const SPECIFIC = ['inaccessible_date_picker', 'captcha_no_alternative', 'focus_trap', 'mouse_only_widget'];
+  const rank = (t) => (SPECIFIC.includes(t) ? SPECIFIC.indexOf(t) : SPECIFIC.length);
   barriers.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]
-    || Number(b.blockedTheUser) - Number(a.blockedTheUser));
+    || Number(b.blockedTheUser) - Number(a.blockedTheUser)
+    || rank(a.type) - rank(b.type));
 
   const confirmed = barriers.filter((b) => b.verified);
   const blocker = barriers.find((b) => b.blockedTheUser && b.verified);
