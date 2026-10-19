@@ -119,4 +119,34 @@ async function cleanup() {
   await pool.query("DELETE FROM sessions WHERE expires_at < now()");
 }
 
-module.exports = { init, saveSession, finishSession, saveReport, saveContact, getTracker, markFixed, cleanup, enabled };
+const monthKey = () => new Date().toISOString().slice(0, 7);
+
+// Counts one rescue. Returns { allowed, used, limit }. If the database is off or fails, it allows the rescue.
+async function useRescue(userRef, limit) {
+  if (!enabled) return { allowed: true, used: 0, limit };
+  try {
+    const r = await pool.query(
+      `INSERT INTO rescue_usage (user_hash, month, count) VALUES ($1,$2,1)
+       ON CONFLICT (user_hash, month) DO UPDATE SET count = rescue_usage.count + 1
+       WHERE rescue_usage.count < $3
+       RETURNING count`,
+      [hashUser(userRef), monthKey(), limit]
+    );
+    if (r.rows.length) return { allowed: true, used: r.rows[0].count, limit };
+    return { allowed: false, used: limit, limit };
+  } catch (e) {
+    console.warn("usage count skipped:", e.message);
+    return { allowed: true, used: 0, limit };
+  }
+}
+
+async function usageSummary() {
+  if (!enabled) return null;
+  const r = await pool.query(
+    "SELECT COALESCE(SUM(count),0)::int AS rescues, COUNT(*)::int AS users FROM rescue_usage WHERE month=$1",
+    [monthKey()]
+  );
+  return r.rows[0];
+}
+
+module.exports = { init, saveSession, finishSession, saveReport, saveContact, getTracker, markFixed, cleanup, useRescue, usageSummary, enabled };

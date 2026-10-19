@@ -55,3 +55,10 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at TIMESTAMPTZ DEFAULT now(),
   expires_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS rescue_usage (
+  user_hash TEXT NOT NULL,
+  month TEXT NOT NULL,
+  count INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_hash, month)
+);

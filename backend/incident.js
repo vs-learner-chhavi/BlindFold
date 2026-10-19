@@ -9,6 +9,12 @@ function safeName(raw) {
 const ROLE_MAP = { a: "link", input: "textbox", textarea: "textbox", select: "combobox", clickable: "button" };
 const normRole = (r) => ROLE_MAP[r] || r;
 
+// Plain boxes the keyboard can't reach are really clickable controls: the report generator
+// only understands buttons, links and fields, so treat them as buttons.
+const NONSEMANTIC = /^(div|span|li|td|img|svg|p)$/;
+const reportRole = (n) =>
+  NONSEMANTIC.test(n.role) && n.keyboardReachable === false ? "button" : normRole(n.role);
+
 function safeGoal(r) {
   // Never pass the user's own words on: they can contain names or booking details.
   const kind = r.situation && r.situation.fieldKind;
@@ -24,7 +30,9 @@ function toIncident(session) {
 
   const tree = (r.nearbyTree || [])
     .map((n) => ({
-      id: n.id, role: normRole(n.role), name: safeName(n.name) || "",
+      id: n.id,
+      role: reportRole(n),
+      name: safeName(n.name) || "",
       readonly: !!(n.state && n.state.readonly),
       keyboard_operable: n.keyboardReachable !== false,
       contains_image: !!n.containsImage,
@@ -35,7 +43,7 @@ function toIncident(session) {
     })));
 
   let stuck = f ? { id: f.id, role: normRole(f.role), name: safeName(f.name) || "" } : null;
-  if (stuck && /^(dialog|main|form|region)$/.test(stuck.role)) {
+  if (stuck && /^(dialog|main|form|region|div)$/.test(stuck.role)) {
     const bad = tree.find((n) => n.role !== "heading" && (!n.name || n.keyboard_operable === false || n.readonly));
     if (bad) stuck = { id: bad.id, role: bad.role, name: bad.name };
   }
@@ -47,8 +55,8 @@ function toIncident(session) {
     user_goal: safeGoal(r),
     stuck_element: stuck,
     screen_reader_announcement: stuck
-    ? "(estimated, not recorded from a screen reader) " + stuck.role + (stuck.name ? ", " + stuck.name : "")
-    : "",
+      ? "(estimated, not recorded from a screen reader) " + stuck.role + (stuck.name ? ", " + stuck.name : "")
+      : "",
     accessibility_tree: tree,
     focus_history: r.focusHistory || [],
     visible_messages: [],
