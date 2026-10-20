@@ -1,16 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Fetch raw problems instead of aggregated sites so we can count charts properly
-  const API = 'http://localhost:3000/tracker'; 
+  // Backend address: local while developing, hosted backend everywhere else
+  const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://blindfold-gppx.onrender.com';
+  const API = `${API_BASE}/tracker`;
   const $ = id => document.getElementById(id);
-  
+
   if ($('current-date'))$('current-date').textContent = new Date().toLocaleString();
-  
+
   let allProblems = [];
   let websites = [];
   let sortKey = 'users', sortDir = -1;
 
   const day = n => new Date(Date.now() - n * 864e5).toISOString();
-  
+
   // Sample fallback data mapped as raw problems
   const SAMPLE_PROBLEMS = [
     {domain: 'demo-sewa.vercel.app', severity: 'blocker', users: 17, status: 'reported', last_reported_at: day(1)},
@@ -24,7 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function load() {
     try {
-      const res = await fetch(API);
+      // The hosted backend may be asleep, so allow up to 60 seconds for it to wake
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 60000);
+      const res = await fetch(API, { signal: ctrl.signal });
+      clearTimeout(timer);
       const j = await res.json();
       if (!res.ok) throw new Error('Server error');
       allProblems = j.problems || [];
@@ -57,13 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const s = sitesMap[p.domain];
       s.problem_count++;
       s.users_affected = Math.max(s.users_affected, parseInt(p.users || 0));
-      
+
       const rank = { blocker: 3, major: 2, minor: 1 };
       if (rank[p.severity] > rank[s.max_severity]) s.max_severity = p.severity;
-      
+
       const sRank = { reported: 1, acknowledged: 2, fixed: 3, verified: 4 };
       if ((sRank[p.status] || 1) < (sRank[s.status] || 1)) s.status = p.status;
-      
+
       if (new Date(p.last_reported_at) > new Date(s.last_reported)) s.last_reported = p.last_reported_at;
     });
     websites = Object.values(sitesMap);
@@ -75,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const b = $('banner');
     if (b) {
       b.classList.toggle('show', sample);
-      b.textContent = sample ? 'Cannot reach the server at localhost:3000. Showing sample data for now.' : '';
+      b.textContent = sample ? 'Cannot reach the Blindfold server right now. Showing sample data for now.' : '';
     }
   }
 
@@ -92,10 +99,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function metrics() {
     const probs = allProblems.length;
-    // Now accurately counts individual verified problems across all sites
+    // Counts individual fixed or verified problems across all sites
     const fixed = allProblems.filter(p => ['fixed', 'verified'].includes(p.status)).length;
     const totalUsers = websites.reduce((a, r) => a + r.users_affected, 0);
-    
+
     countUp($('metric-sites'), websites.length);
     countUp($('metric-problems'), probs);
     countUp($('metric-users'), totalUsers);
@@ -104,8 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function charts() {
     if (!$('chart-severity')) return;
-    
-    // Charts now accurately plot individual problem severities
+
+    // Charts plot individual problem severities
     const sev = ['blocker', 'major', 'minor'].map(s => ({
       name: s,
       value: allProblems.filter(p => p.severity === s).length,
@@ -113,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     donut($('chart-severity'), sev, 'Barriers by severity');
 
-    // Charts now accurately plot individual problem statuses
+    // Charts plot individual problem statuses
     bars($('chart-status'), STAGES.map(s => ({
       name: s,
       value: allProblems.filter(p => p.status === s).length,
@@ -127,13 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
     })));
 
     const by = {};
-    
+
     // Pre-fill the last 4 days with 0 so the line ALWAYS draws
     for (let i = 4; i >= 0; i--) {
       const dateString = new Date(Date.now() - i * 864e5).toISOString().slice(5, 10);
       by[dateString] = 0;
     }
-    
+
     websites.forEach(r => {
       if (!r.last_reported) return;
       try {
@@ -150,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const q = $('search-input') ?$('search-input').value.toLowerCase() : '';
     const sv = $('severity-filter') ?$('severity-filter').value : 'all';
     const rank = { blocker: 3, major: 2, minor: 1 };
-    
+
     const rows = websites.filter(r => r.website_name.toLowerCase().includes(q) && (sv === 'all' || r.max_severity === sv))
       .sort((a, b) => {
         const v = r => sortKey === 'users' ? r.users_affected : sortKey === 'max_severity' ? rank[r.max_severity] || 0 : sortKey === 'last_reported' ? +new Date(r.last_reported) : r.website_name.toLowerCase();

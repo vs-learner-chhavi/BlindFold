@@ -1,3 +1,8 @@
+// Backend address: local while developing, hosted backend everywhere else
+const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+  ? 'http://localhost:3000'
+  : 'https://blindfold-gppx.onrender.com';
+
 const id = (i) => document.getElementById(i);
 const domain = new URLSearchParams(location.search).get('site') || 'Unknown site';
 let problems = [];
@@ -23,7 +28,7 @@ const SAMPLE = [
 
 async function load() {
   try {
-    const r = await fetch(`http://localhost:3000/api/details/${encodeURIComponent(domain)}`);
+    const r = await fetch(`${API_BASE}/api/details/${encodeURIComponent(domain)}`);
     const j = await r.json();
     if (!r.ok || !j.success) throw new Error(j.message || 'Failed to load');
     problems = j.data || [];
@@ -32,7 +37,7 @@ async function load() {
   } catch (e) {
     problems = SAMPLE;
     id('email-status').textContent = 'Unavailable (sample data)';
-    id('banner').textContent = 'Cannot reach the server at localhost:3000. Showing sample data.';
+    id('banner').textContent = 'Cannot reach the Blindfold server right now. Showing sample data.';
     id('banner').classList.add('show');
   }
   draw();
@@ -72,7 +77,7 @@ id('barrier-list').addEventListener('change', async e => {
 
   sel.disabled = true;
   try {
-    const r = await fetch(`http://localhost:3000/update-problem/${encodeURIComponent(fp)}`, {
+    const r = await fetch(`${API_BASE}/update-problem/${encodeURIComponent(fp)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
       body: JSON.stringify({ status: newStatus })
@@ -99,23 +104,23 @@ id('barrier-list').addEventListener('change', async e => {
 id('view-report-btn').onclick = async () => {
   const container = id('markdown-container');
   const btn = id('view-report-btn');
-  
+
   if (container.style.display === 'block') {
     container.style.display = 'none';
     btn.textContent = 'View Raw Markdown';
     return;
   }
-  
+
   btn.textContent = 'Loading...';
   try {
-    const r = await fetch(`http://localhost:3000/api/report/${encodeURIComponent(domain)}`);
+    const r = await fetch(`${API_BASE}/api/report/${encodeURIComponent(domain)}`);
     const j = await r.json();
     if (j.success) {
       container.textContent = j.report;
       container.style.display = 'block';
       btn.textContent = 'Hide Report';
     } else {
-      // Now it will show the ACTUAL error from the backend
+      // Shows the actual error from the backend
       toast(j.error || 'Report not found.', true);
       btn.textContent = 'View Raw Markdown';
     }
@@ -131,18 +136,26 @@ id('send-email-btn').onclick = async () => {
   btn.textContent = 'Searching via Tinyfish...';
   btn.style.opacity = '0.7';
   btn.disabled = true;
-  
+
   try {
-    const r = await fetch(`http://localhost:3000/api/dispatch-email/${encodeURIComponent(domain)}`, { 
-      method: 'POST' 
+    const token = (id('token').value || sessionStorage.getItem('adminToken') || '').trim();
+    const r = await fetch(`${API_BASE}/api/dispatch-email/${encodeURIComponent(domain)}`, {
+      method: 'POST',
+      headers: { 'x-admin-token': token }
     });
+
+    if (r.status === 403) {
+      toast('Unauthorized: Enter valid ADMIN_TOKEN in top-right box.', true);
+      return;
+    }
+
     const j = await r.json();
-    
+
     if (j.success) {
       toast(`Email dispatched to ${j.email}`);
       await load(); // Reloads dashboard metrics so "Email Status" updates instantly
     } else {
-      // Now it will show the ACTUAL error from the Tinyfish/Nodemailer module
+      // Shows the actual error from the Tinyfish/Nodemailer module
       toast(`Error: ${j.error || 'Dispatch failed'}`, true);
     }
   } catch (e) {
