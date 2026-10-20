@@ -85,35 +85,77 @@ function cleanRequest(body) {
   };
 }
 
+
 function requestAllowed(req) {
   const host = String(req.headers.host || "").toLowerCase();
+
+  const allowedHosts = [
+    "localhost:3000",
+    "127.0.0.1:3000",
+    "blindfold-gppx.onrender.com",
+  ];
+
   const extraHosts = (process.env.ALLOWED_HOSTS || "")
     .split(",")
-    .map((h) => h.trim().toLowerCase())
+    .map(h => h.trim().toLowerCase())
     .filter(Boolean);
-  const isLocal = new RegExp(`^(localhost|127\\.0\\.0\\.1):${PORT}$`).test(host);
-  if (!isLocal && !extraHosts.includes(host)) return false;
+
+  if (!allowedHosts.includes(host) && !extraHosts.includes(host)) {
+    return false;
+  }
 
   const origin = req.headers.origin;
   if (!origin || origin === "null") return true;
 
-  if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) return true;
+  const allowedOrigins = [
+    "https://blindfold-public.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ];
 
-  const only = process.env.ALLOWED_EXTENSION_ID;
-  return only ? origin === `chrome-extension://${only}` : origin.startsWith("chrome-extension://");
+  if (allowedOrigins.includes(origin)) return true;
+
+  // Keep support for the Chrome extension.
+  if (origin.startsWith("chrome-extension://")) {
+    const extensionId = process.env.ALLOWED_EXTENSION_ID;
+    return !extensionId || origin === `chrome-extension://${extensionId}`;
+  }
+
+  return false;
 }
 
+
+
 function send(res, code, data, origin) {
-  const headers = { "Content-Type": "application/json" };
-  
-  if (!origin || origin === "null" || origin.startsWith("chrome-extension://") || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
-    headers["Access-Control-Allow-Origin"] = origin || "*";
-    headers["Access-Control-Allow-Headers"] = "Content-Type, x-admin-token";
-    headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
+  const allowedOrigins = [
+    "https://blindfold-public.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ];
+
+  const isExtension =
+    origin && origin.startsWith("chrome-extension://");
+
+  const extensionId = process.env.ALLOWED_EXTENSION_ID;
+  const extensionAllowed =
+    isExtension &&
+    (!extensionId || origin === `chrome-extension://${extensionId}`);
+
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Headers": "Content-Type, x-admin-token",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  };
+
+  if (allowedOrigins.includes(origin) || extensionAllowed) {
+    headers["Access-Control-Allow-Origin"] = origin;
+    headers["Vary"] = "Origin";
   }
+
   res.writeHead(code, headers);
   res.end(JSON.stringify(data));
 }
+
 
 function createServer() {
   return http.createServer((req, res) => {
