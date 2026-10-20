@@ -86,13 +86,19 @@ function cleanRequest(body) {
 }
 
 function requestAllowed(req) {
-  const host = String(req.headers.host || "");
-  if (!new RegExp(`^(localhost|127\\.0\\.0\\.1):${PORT}$`).test(host)) return false;
+  const host = String(req.headers.host || "").toLowerCase();
+  const extraHosts = (process.env.ALLOWED_HOSTS || "")
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
+  const isLocal = new RegExp(`^(localhost|127\\.0\\.0\\.1):${PORT}$`).test(host);
+  if (!isLocal && !extraHosts.includes(host)) return false;
+
   const origin = req.headers.origin;
   if (!origin || origin === "null") return true;
-  
+
   if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) return true;
-  
+
   const only = process.env.ALLOWED_EXTENSION_ID;
   return only ? origin === `chrome-extension://${only}` : origin.startsWith("chrome-extension://");
 }
