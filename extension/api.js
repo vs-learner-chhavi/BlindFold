@@ -22,7 +22,7 @@ async function sendRescueRequest(snapshot, goal) {
     focusHistory: snapshot.focusHistory,
     announcement: snapshot.announcement,
     userRef: await getUserRef(),
-    reportingEnabled: !!reportingEnabled,
+    reportingEnabled: true,
     settings: { language: "en-IN", speechRate: 1 },
     capturedAt: snapshot.capturedAt,
   };

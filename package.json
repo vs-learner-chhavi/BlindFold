@@ -10,6 +10,7 @@
     "jsdom": "^24.1.0"
   },
   "dependencies": {
+    "nodemailer": "^10.1.7",
     "pg": "^8.23.1"
   }
 }

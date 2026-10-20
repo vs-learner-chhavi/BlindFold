@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Accessibility Details</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div class="container">
+<header>
+  <div><p style="margin:0 0 8px"><a class="btn" href="dashboard.html">← Dashboard</a></p><h1 id="domain-title">Loading…</h1>
+  <p class="sub">Email status: <span id="email-status">Checking delivery logs…</span></p></div>
+  <div class="token"><label for="token">Admin token</label><input type="password" id="token" autocomplete="off"><button class="btn" id="save-token" type="button">Save</button></div>
+</header>
+<main id="main-content" tabindex="-1">
+  <div class="banner" id="banner" role="status"></div>
+  <div class="charts-grid">
+    <div class="panel"><h2>Severity of barriers</h2><div id="chart-severity"></div></div>
+    <div class="panel"><h2>Fix progress</h2><div id="chart-status"></div></div>
+  </div>
+  
+  <section class="panel" style="margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+      <h2 style="margin: 0;">Automated Audit Report</h2>
+      <div style="display: flex; gap: 10px;">
+        <button id="view-report-btn" class="btn">View Raw Markdown</button>
+        <button id="send-email-btn" class="btn" style="background: var(--cyan); color: #001018;">Dispatch Email via Tinyfish</button>
+      </div>
+    </div>
+    <!-- Hidden container that expands when "View Raw Markdown" is clicked -->
+    <pre id="markdown-container" style="display: none; background: #0a1120; padding: 16px; margin-top: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; color: var(--text); border: 1px solid var(--line); white-space: pre-wrap; font-family: var(--mono);"></pre>
+  </section>
+
+  <section class="panel" aria-labelledby="t">
+    <h2 id="t">Barriers</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th scope="col">Barrier description</th><th scope="col">Severity</th><th scope="col">WCAG rule</th><th scope="col">Status</th><th scope="col">Users affected</th></tr></thead>
+      <tbody id="barrier-list"></tbody>
+    </table></div>
+  </section>
+</main>
+</div>
+<div id="toast" role="status"></div>
+<script src="charts.js"></script>
+<script src="details.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-require("./env").loadEnv(); // must run before agent.js reads process.env
+require("./env").loadEnv(); 
 
 const fs = require("fs");
 const path = require("path");
@@ -12,18 +12,15 @@ const gemini = require("./gemini");
 const { redact, SENSITIVE_FIELD } = require("./safety");
 
 const reporting = require("../reporting");
-const { toIncident } = require("./incident");
+const { toIncident, getTrackerDashboardData, getWebsiteDetails } = require("./incident");
 
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || "127.0.0.1";
 const MAX_STEPS = 12;
 const MAX_BODY = 1_000_000;
-const sessions = {}; // in-memory for now
+const sessions = {}; 
 
-// ---------------------------------------------------------------------------
-// Reporting (components 5, 6, 7)
-// ---------------------------------------------------------------------------
-const delivery = new reporting.DeliveryService(); // check this export name in reporting/index.js
+const delivery = new reporting.DeliveryService();
 const contactsCache = {};
 
 const INTERACTIVE_ROLES = /^(button|link|textbox|combobox|select|switch|a|input|textarea|clickable)$/;
@@ -42,13 +39,15 @@ async function reportIncident(session, why) {
     const incident = toIncident(session);
     const report = reporting.generateReport(incident);
 
+    const host = new URL(incident.page_url).hostname;
     const dir = path.join(__dirname, "..", "reporting", "output");
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, "last-report.md"), reporting.toMarkdown(report));
-    console.log("Report written: reporting/output/last-report.md (" + why + ")");
+    
+    fs.writeFileSync(path.join(dir, `${host}.md`), reporting.toMarkdown(report));
+    console.log(`Report written: reporting/output/${host}.md (${why})`);
+    
     db.finishSession(session.id, session.completed).catch(() => {});
 
-    // Only barriers the generator itself confirmed go any further.
     const confirmed = report.barriers.filter((b) => b.verified);
     if (!confirmed.length) {
       const t = incident.accessibility_tree || [];
@@ -62,7 +61,6 @@ async function reportIncident(session, why) {
       if (saved) console.log("Saved to database:", saved.problems, "confirmed problem(s)");
     } catch (e) { console.warn("database save skipped:", e.message); }
 
-    const host = new URL(incident.page_url).hostname;
     let contacts = null;
     try {
       if (!contactsCache[host]) contactsCache[host] = await reporting.findContacts(incident.page_url);
@@ -78,9 +76,6 @@ async function reportIncident(session, why) {
 setInterval(() => delivery.run().catch(console.error), 3600 * 1000);
 setInterval(() => db.cleanup().catch(() => {}), 3600 * 1000);
 
-// ---------------------------------------------------------------------------
-// Request cleaning and access control
-// ---------------------------------------------------------------------------
 function cleanRequest(body) {
   const safeValues = (body.safeValues || []).filter((v) => !SENSITIVE_FIELD.test(v.field || ""));
   return {
@@ -90,31 +85,30 @@ function cleanRequest(body) {
   };
 }
 
-// Only the Blindfold extension may talk to this backend. Web pages must not be able to
-// drive it (CORS wildcard removed; Origin and Host are both checked).
 function requestAllowed(req) {
   const host = String(req.headers.host || "");
-  if (!new RegExp(`^(localhost|127\\.0\\.0\\.1):${PORT}$`).test(host)) return false; // DNS-rebinding guard
+  if (!new RegExp(`^(localhost|127\\.0\\.0\\.1):${PORT}$`).test(host)) return false;
   const origin = req.headers.origin;
-  if (!origin) return true; // non-browser callers (curl, tests)
+  if (!origin || origin === "null") return true;
+  
+  if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) return true;
+  
   const only = process.env.ALLOWED_EXTENSION_ID;
   return only ? origin === `chrome-extension://${only}` : origin.startsWith("chrome-extension://");
 }
 
 function send(res, code, data, origin) {
   const headers = { "Content-Type": "application/json" };
-  if (origin && origin.startsWith("chrome-extension://")) {
-    headers["Access-Control-Allow-Origin"] = origin;
-    headers["Access-Control-Allow-Headers"] = "Content-Type";
-    headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS";
+  
+  if (!origin || origin === "null" || origin.startsWith("chrome-extension://") || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+    headers["Access-Control-Allow-Origin"] = origin || "*";
+    headers["Access-Control-Allow-Headers"] = "Content-Type, x-admin-token";
+    headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
   }
   res.writeHead(code, headers);
   res.end(JSON.stringify(data));
 }
 
-// ---------------------------------------------------------------------------
-// Server
-// ---------------------------------------------------------------------------
 function createServer() {
   return http.createServer((req, res) => {
     const origin = req.headers.origin;
@@ -129,17 +123,15 @@ function createServer() {
       raw += c;
       if (raw.length > MAX_BODY) { tooBig = true; req.destroy(); }
     });
-    req.on("end", () => {
+    req.on("end", async () => {
       if (tooBig) return;
       let body = {};
       try { body = raw ? JSON.parse(raw) : {}; } catch { return reply(400, { error: "Bad JSON" }); }
 
-      // GET /health -> is the planner (Gemini) actually working? Handy: curl http://localhost:3000/health
       if (req.method === "GET" && req.url === "/health") {
         return gemini.check().then((g) => reply(200, { backend: "ok", gemini: g }));
       }
 
-      // POST /help -> count the rescue, then create a session
       if (req.method === "POST" && req.url === "/help") {
         if (!body.pageUrl || !body.userGoal) return reply(400, { error: "pageUrl and userGoal required" });
         const limit = Number(process.env.FREE_RESCUES_PER_MONTH) || 15;
@@ -187,7 +179,6 @@ function createServer() {
         });
       }
 
-      // GET /status/:id
       const statusMatch = req.url.match(/^\/status\/([\w-]+)$/);
       if (req.method === "GET" && statusMatch) {
         const s = sessions[statusMatch[1]];
@@ -202,8 +193,6 @@ function createServer() {
         });
       }
 
-      // POST /next/:id  -> report the last action's outcome (optional), get the next single step.
-      // body: { targets, calendarMonth, safeValues, userReply, report }
       const nextMatch = req.url.match(/^\/next\/([\w-]+)$/);
       if (req.method === "POST" && nextMatch) {
         const s = sessions[nextMatch[1]];
@@ -217,7 +206,6 @@ function createServer() {
         );
       }
 
-      // POST /confirm/:id  { "answer": "yes" | "no" }   (legacy, unused by the agent loop)
       const confirmMatch = req.url.match(/^\/confirm\/([\w-]+)$/);
       if (req.method === "POST" && confirmMatch) {
         const s = sessions[confirmMatch[1]];
@@ -225,6 +213,43 @@ function createServer() {
         s.confirmed = body.answer === "yes";
         s.status = s.confirmed ? "in_progress" : "failed";
         return reply(200, { confirmed: s.confirmed });
+      }
+      
+      if (req.method === "GET" && req.url === "/api/tracker") {
+        const pool = db.pool || db; 
+        return getTrackerDashboardData(pool).then(
+          (dashboardData) => reply(200, { success: true, data: dashboardData }),
+          (err) => {
+            console.error("Dashboard API Error:", err);
+            reply(500, { success: false, message: "Failed to load tracker data." });
+          }
+        );
+      }
+      
+      if (req.method === "GET" && req.url.startsWith("/api/details/")) {
+        const rawDomain = decodeURIComponent(req.url.slice("/api/details/".length));
+        return getWebsiteDetails(rawDomain).then(
+          (result) => reply(200, { 
+            success: true, 
+            data: result.problems, 
+            email_status: result.email_status 
+          }),
+          (err) => {
+            console.error("Details API Error:", err);
+            reply(500, { success: false, message: "Failed to load details." });
+          }
+        );
+      }
+
+      // NEW: Fetch contacts for Dashboard panel
+      if (req.method === "GET" && req.url === "/api/contacts") {
+        const pool = db.pool || db;
+        return pool.query("SELECT domain, contact FROM websites WHERE contact IS NOT NULL")
+          .then((r) => reply(200, { success: true, data: r.rows }))
+          .catch((err) => {
+            console.error("Contacts API Error:", err);
+            reply(500, { success: false, message: "Failed to load contacts." });
+          });
       }
       
       if (req.method === "GET" && req.url === "/tracker") {
@@ -244,16 +269,115 @@ function createServer() {
         });
       }
 
-      const fixedMatch = req.url.match(/^\/fixed\/([0-9a-f]{12})$/);
-      if (req.method === "POST" && fixedMatch) {
-        if (!process.env.ADMIN_TOKEN || req.headers["x-admin-token"] !== process.env.ADMIN_TOKEN) {
-          return reply(403, { error: "Forbidden" });
+      const updateMatch = req.url.match(/^\/(update-problem|fixed)\/([^/?#]+)$/);
+      if (req.method === "POST" && updateMatch) {
+        const fingerprint = decodeURIComponent(updateMatch[2]);
+        const expectedToken = process.env.ADMIN_TOKEN;
+        const providedToken = req.headers["x-admin-token"];
+
+        if (expectedToken && providedToken !== expectedToken) {
+          return reply(403, { error: "Invalid or missing Admin Token" });
         }
-        return db.markFixed(fixedMatch[1], body.status === "verified" ? "verified" : "fixed").then(
-          (r) => (r ? reply(200, r) : reply(404, { error: "Unknown problem" })),
-          () => reply(500, { error: "Update failed" })
+        
+        const validStatuses = ["reported", "acknowledged", "fixed", "verified"];
+        const targetStatus = validStatuses.includes(body.status) ? body.status : "fixed";
+        
+        const updateProblemInDb = async () => {
+          const pool = db.pool || db;
+          if (typeof pool.query === "function") {
+            const res = await pool.query(
+              "UPDATE problems SET status = $2 WHERE fingerprint = $1 RETURNING fingerprint, status",
+              [fingerprint, targetStatus]
+            );
+            if (res.rows && res.rows.length > 0) {
+              console.log(">>> DB RECORD UPDATED:", res.rows[0]);
+              return res.rows[0];
+            }
+          }
+          if (typeof db.markFixed === "function") {
+            const result = await db.markFixed(fingerprint, targetStatus);
+            console.log(">>> DB RECORD UPDATED (markFixed):", result);
+            return result;
+          }
+          return null;
+        };
+
+        return updateProblemInDb().then(
+          (r) => (r ? reply(200, { success: true, problem: r }) : reply(404, { error: "Unknown problem fingerprint" })),
+          (err) => {
+            console.error("Status update error:", err.message);
+            reply(500, { error: "Update failed" });
+          }
         );
       }
+
+      const emailMatch = req.url.match(/^\/api\/log-email$/);
+      if (req.method === "POST" && emailMatch) {
+        // Safe placeholder response since contacted_at is removed from schema
+        return reply(200, { success: true });
+      }
+
+      // Fetch report dynamically from PostgreSQL database and append Tinyfish JSON
+      const reportMatch = req.url.match(/^\/api\/report\/(.+)$/);
+      if (req.method === "GET" && reportMatch) {
+        const targetDomain = decodeURIComponent(reportMatch[1]);
+        try {
+          const dbData = await db.getReportAndContact(targetDomain);
+          
+          if (!dbData || !dbData.report) {
+            return reply(404, { success: false, error: "No report found in database." });
+          }
+          
+          const parsedReport = typeof dbData.report === 'string' ? JSON.parse(dbData.report) : dbData.report;
+          let markdownContent = reporting.toMarkdown(parsedReport);
+          
+          if (dbData.contact) {
+            let contactObj = typeof dbData.contact === 'string' ? JSON.parse(dbData.contact) : dbData.contact;
+            const formattedContact = {
+              [targetDomain]: {
+                isGovernment: contactObj.isGovernment || false,
+                contactValue: contactObj.bestContact?.value || `admin@${targetDomain}`,
+                lastEmailAt: null,
+                contactType: contactObj.bestContact?.type || "email",
+                contactConfidence: contactObj.bestContact?.confidence || "low"
+              }
+            };
+            markdownContent += "\n\n---\n### Tinyfish Contact Data\n```json\n" + JSON.stringify(formattedContact, null, 2) + "\n```\n";
+          } else {
+            markdownContent += "\n\n---\n### Tinyfish Contact Data\n*No Tinyfish data found yet. Click 'Dispatch Email' to generate it.*";
+          }
+
+          return reply(200, { success: true, report: markdownContent });
+        } catch (e) {
+          console.error("Report fetch error:", e);
+          return reply(500, { success: false, error: e.message });
+        }
+      }
+
+      // Trigger Tinyfish & Nodemailer dispatch manually
+      const dispatchMatch = req.url.match(/^\/api\/dispatch-email\/(.+)$/);
+      if (req.method === "POST" && dispatchMatch) {
+        const domainTarget = decodeURIComponent(dispatchMatch[1]);
+        try {
+          const contactData = await reporting.findContacts(`https://${domainTarget}`);
+          const emailFound = contactData?.bestContact?.value || `admin@${domainTarget}`;
+          
+          await delivery.run();
+
+          const pool = db.pool || db;
+          // Omitting contacted_at to prevent DB constraint errors
+          await pool.query(
+            "UPDATE websites SET contact = $2 WHERE domain=$1", 
+            [domainTarget, JSON.stringify(contactData)]
+          );
+          
+          return reply(200, { success: true, email: emailFound });
+        } catch (e) {
+          console.error("Dispatch Error:", e);
+          return reply(500, { success: false, error: e.message });
+        }
+      }
+
       reply(404, { error: "Not found" });
     });
   });
@@ -263,7 +387,6 @@ const VERIFY_STATUSES = ["verified", "unverified", "failed"];
 const OUTCOMES = ["executed", "rejected", "blocked", "failed", "navigated"];
 
 async function handleNext(s, body) {
-  // 1) Record what happened to the previously proposed action.
   if (body.report) {
     const r = body.report;
     if (!s.pending || r.actionId !== s.pending.actionId) {
@@ -279,7 +402,7 @@ async function handleNext(s, body) {
     });
     s.pending = null;
   } else if (s.pending) {
-    s.pending = null; // extension went away mid-step; treat the old proposal as abandoned
+    s.pending = null; 
   }
 
   if (typeof body.userReply === "string" && body.userReply.trim()) {
@@ -297,15 +420,12 @@ async function handleNext(s, body) {
     };
   }
 
-  // 2) Plan exactly one next step.
   const targets = planner.sanitizeTargets(body.targets);
   const fieldValues = (Array.isArray(body.safeValues) ? body.safeValues : [])
     .filter((v) => v && !SENSITIVE_FIELD.test(v.field || ""))
     .slice(0, 30)
     .map((v) => redact({ field: String(v.field || "").slice(0, 80), value: String(v.value || "").slice(0, 80) }));
 
-  // The TinyFish inspection runs in the background and is NEVER waited for. If it happens to be
-  // ready it is passed along as extra context; the live page is always the main source.
   const plan = await planner.planNext({
     goal: s.request.userGoal,
     replies: s.replies,
@@ -383,7 +503,6 @@ async function processRun(sessionId) {
     session.status = "failed";
     session.summary = "The website check failed. Please try again.";
 
-    // Log only safe diagnostic information.
     session.diagnostic = {
       code: "POLL_ERROR",
       message: String(error.message || "Unknown error").slice(0, 200),

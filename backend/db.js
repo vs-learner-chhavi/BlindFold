@@ -62,14 +62,13 @@ async function saveReport(report, userRef) {
          ON CONFLICT (fingerprint) DO UPDATE SET
            last_reported_at = now(),
            severity = CASE WHEN EXCLUDED.severity = 'blocker' THEN 'blocker' ELSE problems.severity END
-         RETURNING id, status, (xmax = 0) AS inserted`,   // xmax = 0 means a brand-new row
+         RETURNING id, status, (xmax = 0) AS inserted`,   
         [b.fingerprint, websiteId, b.type, b.title, el.role || null, el.name || null, b.wcag || [], b.severity, b.fix]
       );
       const row = p.rows[0];
       if (row.inserted) {
         await client.query("INSERT INTO status_history (problem_id, status, note) VALUES ($1,'reported','first report')", [row.id]);
       } else if (row.status === 'fixed' || row.status === 'verified') {
-        // A fixed problem came back: treat it as new.
         await client.query("UPDATE problems SET status='reported' WHERE id=$1", [row.id]);
         await client.query("INSERT INTO status_history (problem_id, status, note) VALUES ($1,'reported','came back after being fixed')", [row.id]);
       }
@@ -121,7 +120,6 @@ async function cleanup() {
 
 const monthKey = () => new Date().toISOString().slice(0, 7);
 
-// Counts one rescue. Returns { allowed, used, limit }. If the database is off or fails, it allows the rescue.
 async function useRescue(userRef, limit) {
   if (!enabled) return { allowed: true, used: 0, limit };
   try {
@@ -149,4 +147,19 @@ async function usageSummary() {
   return r.rows[0];
 }
 
-module.exports = { init, saveSession, finishSession, saveReport, saveContact, getTracker, markFixed, cleanup, useRescue, usageSummary, enabled };
+async function getReportAndContact(domain) {
+  if (!enabled) return null;
+  const r = await pool.query(
+    `SELECT r.report, w.* 
+     FROM websites w 
+     LEFT JOIN reports r ON w.id = r.website_id 
+     WHERE w.domain = $1 
+     ORDER BY r.id DESC LIMIT 1`,
+    [domain]
+  );
+  if (r.rows.length) return r.rows[0];
+  return null;
+}
+
+// FIXED: Exporting 'pool' so server.js can access it
+module.exports = { pool, init, saveSession, finishSession, saveReport, saveContact, getTracker, markFixed, cleanup, useRescue, usageSummary, getReportAndContact, enabled };

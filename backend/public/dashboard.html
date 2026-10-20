@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessibility Barrier Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div class="container">
+<header>
+  <div><h1>Accessibility Barrier Tracker</h1><p class="sub">Last synced <span id="current-date">…</span></p></div>
+  <span class="chip" id="mode-chip"><span class="dot" aria-hidden="true"></span><span id="mode-text">Connecting…</span></span>
+</header>
+<main id="main-content" tabindex="-1">
+  <div class="banner" id="banner" role="status"></div>
+
+  <section aria-labelledby="metrics-heading">
+    <h2 id="metrics-heading" class="sr" style="position:absolute;clip-path:inset(100%)">Key metrics</h2>
+    <div class="metrics-grid">
+      <div class="panel metric-card"><div class="metric-value" id="metric-sites">0</div><div class="metric-label">Websites tracked</div></div>
+      <div class="panel metric-card"><div class="metric-value" id="metric-problems">0</div><div class="metric-label">Confirmed problems</div></div>
+      <div class="panel metric-card"><div class="metric-value" id="metric-users">0</div><div class="metric-label">People affected</div></div>
+      <div class="panel metric-card"><div class="metric-value" id="metric-fixed">0 (0%)</div><div class="metric-label">Fixed and verified</div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="charts-heading">
+    <h2 id="charts-heading" style="position:absolute;clip-path:inset(100%)">Charts</h2>
+    <div class="charts-grid">
+      <div class="panel"><h3 style="margin:0 0 14px;font-size:16px">Severity mix</h3><div id="chart-severity"></div></div>
+      <div class="panel"><h3 style="margin:0 0 14px;font-size:16px">Fix pipeline</h3><div id="chart-status"></div></div>
+      <div class="panel"><h3 style="margin:0 0 14px;font-size:16px">Most affected sites</h3><div id="chart-users"></div></div>
+      <div class="panel"><h3 style="margin:0 0 14px;font-size:16px">Sites reported per day</h3><div id="chart-timeline"></div></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="table-heading">
+    <h2 id="table-heading">Tracked websites</h2>
+    <div class="controls">
+      <div><label for="search-input">Search websites</label><input type="search" id="search-input" placeholder="Demo Seva Portal"></div>
+      <div><label for="severity-filter">Severity</label>
+        <select id="severity-filter"><option value="all">All</option><option value="blocker">Blocker</option><option value="major">Major</option><option value="minor">Minor</option></select></div>
+    </div>
+    <div class="table-wrap">
+      <table id="tracker-table">
+        <thead><tr>
+          <th scope="col" aria-sort="none"><button data-sort="website_name">Website ↕</button></th>
+          <th scope="col" aria-sort="none"><button data-sort="max_severity">Max severity ↕</button></th>
+          <th scope="col" aria-sort="none"><button data-sort="users">Users affected ↕</button></th>
+          <th scope="col">Worst problem status</th>
+          <th scope="col" aria-sort="none"><button data-sort="last_reported">Last reported ↕</button></th>
+          <th scope="col">Action</th>
+        </tr></thead>
+        <tbody id="table-body" aria-live="polite"><tr><td colspan="6">Loading data…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel how" style="margin-top:20px" aria-labelledby="methodology-heading">
+    <h2 id="methodology-heading">How we count and verify</h2>
+    <ul style="margin:0">
+      <li>Each person counts once per problem.</li>
+      <li>Only confirmed barriers appear. Reports needing manual review are excluded to protect site owners.</li>
+      <li>Counts under 5 show as "1 to 4 users" to keep reporters anonymous.</li>
+      <li>Fixes are verified by automated re-testing with our AI agent.</li>
+    </ul>
+  </section>
+
+</main>
+<footer class="disclaimer"><p><strong>Note:</strong> These findings come from automatic checks and user reports. They are not a legal ruling. Site owners can dispute findings or send updates by contacting our team.</p></footer>
+</div>
+<div id="toast" role="status"></div>
+<script src="charts.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
